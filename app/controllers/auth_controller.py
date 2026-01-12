@@ -26,10 +26,8 @@ def login_user(payload):
     try:
         user = AuthService.login(payload)
     except ValueError as e:
-        logger.error(e)
         return jsonify({"msg": str(e)}), 401
 
-    logger.info(user)
     user_data = user_schema.dump(user)
     access_token = create_access_token(
         identity=str(user.id), additional_claims={"user": user_data}
