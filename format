@@ -1,0 +1,16 @@
+import subprocess
+import sys
+
+commands = [
+    ["isort", "."],
+    ["black", "."],
+]
+print(".............. Running Formatting ............ \n")
+for cmd in commands:
+    result = subprocess.run(cmd)
+
+    if result.returncode != 0:
+        print("❌ Formatter failed")
+        sys.exit(result.returncode)
+
+print("✅ Code formatted successfully")
