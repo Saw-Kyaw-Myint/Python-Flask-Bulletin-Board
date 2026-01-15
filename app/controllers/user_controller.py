@@ -1,12 +1,13 @@
+import os
+
 from flask import jsonify, request
+from werkzeug.utils import secure_filename
 
 from app.request.user_request import UserCreateRequest, UserUpdateRequest
-from app.schema.user_schema import UserSchema
 from app.schema.user_list_schema import UserListSchema
+from app.schema.user_schema import UserSchema
 from app.service.user_service import UserService
 from app.shared.commons import validate_request
-import os
-from werkzeug.utils import secure_filename
 from config.logging import logger
 
 user_schema = UserSchema()
@@ -28,15 +29,17 @@ def get_users():
 
     pagination = UserService.filter_paginate(filters, page, per_page)
 
-    return jsonify({
-        "data": user_list.dump(pagination.items),
-        "meta": {
-            "page": pagination.page,
-            "per_page": pagination.per_page,
-            "total": pagination.total,
-            "pages": pagination.pages,
+    return jsonify(
+        {
+            "data": user_list.dump(pagination.items),
+            "meta": {
+                "page": pagination.page,
+                "per_page": pagination.per_page,
+                "total": pagination.total,
+                "pages": pagination.pages,
+            },
         }
-    })
+    )
 
 
 @validate_request(UserCreateRequest)
@@ -44,7 +47,7 @@ def create_user(payload):
     UPLOAD_DIR = "public/images/profile"
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     # profile file
-    file =request.files.get('profile')
+    file = request.files.get("profile")
     if not file:
         return jsonify({"profile": "The Profile field is required"}), 422
     ext = os.path.splitext(file.filename)[1]
@@ -59,14 +62,15 @@ def create_user(payload):
     except ValueError as e:
         return jsonify({"msg": str(e)}), 409
 
-    return jsonify({
-        "msg": "Register success",
-        "user": {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email
-        }
-    }), 201
+    return (
+        jsonify(
+            {
+                "msg": "Register success",
+                "user": {"id": user.id, "name": user.name, "email": user.email},
+            }
+        ),
+        201,
+    )
 
 
 # Update user
@@ -81,9 +85,52 @@ def update_user(payload, user_id):
     return jsonify(user_schema.dump(user)), 200
 
 
-# Delete user
-def delete_user(user_id):
-    success = UserService.delete(user_id)
-    if not success:
-        return jsonify({"msg": "User not found"}), 404
-    return jsonify({"msg": "User deleted"}), 200
+def delete_users():
+    """_Delete users_
+
+    Returns:
+        _json_: _Error or Success_
+    """
+    data = request.get_json() or {}
+    user_ids = data.get("user_ids")
+    if not isinstance(user_ids, list) or not user_ids:
+        return jsonify({"msg": "Provide a list of user IDs"}), 400
+    try:
+        users = UserService.delete_users(user_ids)
+        return jsonify({"msg": f"{len(users)} users deleted successfully"}), 200
+    except ValueError as e:
+        return jsonify({"msg": str(e)}), 404
+
+
+def lock_users():
+    """_Lock users_
+
+    Returns:
+        _json_: _Error or Success_
+    """
+    data = request.get_json() or {}
+    user_ids = data.get("user_ids")
+    if not isinstance(user_ids, list) or not user_ids:
+        return jsonify({"msg": "Provide a list of user IDs"}), 400
+    try:
+        users = UserService.lock_users(user_ids)
+        return jsonify({"msg": f"{len(users)} users locked successfully"}), 200
+    except ValueError as e:
+        return jsonify({"msg": str(e)}), 404
+
+
+def unlock_users():
+    """_Unlock users_
+
+    Returns:
+        _json_: _Error or Success_
+    """
+    data = request.get_json() or {}
+    user_ids = data.get("user_ids")
+    if not isinstance(user_ids, list) or not user_ids:
+        return jsonify({"msg": "Provide a list of user IDs"}), 400
+    try:
+        users = UserService.unlock_users(user_ids)
+        return jsonify({"msg": f"{len(users)} users unlocked successfully"}), 200
+    except ValueError as e:
+        return jsonify({"msg": str(e)}), 404

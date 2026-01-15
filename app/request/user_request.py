@@ -1,9 +1,11 @@
 # app/request/user_request.py
-from pydantic import BaseModel, EmailStr, Field, validator, constr
 from datetime import date
 from typing import Optional
 
+from pydantic import BaseModel, EmailStr, Field, constr, validator
+
 NonEmptyStr = constr(min_length=1, strip_whitespace=True)
+
 
 class UserCreateRequest(BaseModel):
     """
@@ -29,6 +31,7 @@ class UserCreateRequest(BaseModel):
         if "password" in values and v != values["password"]:
             raise ValueError("Passwords do not match")
         return v
+
     @classmethod
     def messages(cls):
         return {
@@ -40,10 +43,11 @@ class UserCreateRequest(BaseModel):
             "password.string_too_short": "The Password must be at least 6 characters.",
             "password.string_too_long": "The Password may not be greater than 20 characters.",
             "password.string_pattern_mismatch": "The Password must be 8-20 chars and can include letters, digits, and special chars.",
-            "confirm_password.missing" : "The Password Confirm field is required.",
+            "confirm_password.missing": "The Password Confirm field is required.",
             "role.missing": "The Role field is required.",
             "address.missing": "The Address field is required.",
         }
+
 
 class UserUpdateRequest(BaseModel):
     name: str = Field(None, min_length=3, max_length=50)

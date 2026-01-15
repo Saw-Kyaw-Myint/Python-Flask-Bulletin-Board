@@ -3,8 +3,10 @@ from flask import Blueprint
 from app.controllers.auth_controller import get_me, login_user
 from app.controllers.user_controller import (
     create_user,
-    delete_user,
+    delete_users,
     get_users,
+    lock_users,
+    unlock_users,
     update_user,
 )
 from app.extension import limiter
@@ -14,7 +16,7 @@ from app.shared.commons import before_middleware
 # ///////// implement Blueprint //////////////////////
 user_bp = Blueprint("user", __name__, url_prefix="/users")
 auth_bp = Blueprint("auth", __name__)
-post_bp = Blueprint("post", __name__,url_prefix='/posts')
+post_bp = Blueprint("post", __name__, url_prefix="/posts")
 
 
 # Apply rate limit to the whole blueprint
@@ -29,9 +31,10 @@ user_bp.post("/create")(create_user)
 before_middleware(user_bp, user_middleware)
 user_bp.get("/")(get_users)
 user_bp.put("/update/<int:user_id>")(update_user)
-user_bp.delete("/delete/<int:user_id>")(delete_user)
-
+user_bp.post("/delete")(delete_users)
+user_bp.post("/lock")(lock_users)
+user_bp.post("/unlock")(unlock_users)
 
 
 # export all Blueprint
-__all__ = ["user_bp", "auth_bp","post_bp"]
+__all__ = ["user_bp", "auth_bp", "post_bp"]

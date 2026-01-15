@@ -1,9 +1,10 @@
+from datetime import datetime, timezone
+
 from flask_bcrypt import check_password_hash
 
 from app.dao.user_dao import UserDao
 from app.service.base_service import BaseService
 from app.shared.commons import field_error
-from datetime import datetime,timezone
 
 
 class AuthService(BaseService):

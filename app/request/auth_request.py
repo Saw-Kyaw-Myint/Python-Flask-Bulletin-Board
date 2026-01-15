@@ -1,5 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class LoginRequest(BaseModel):
@@ -10,7 +11,7 @@ class LoginRequest(BaseModel):
         max_length=20,
         pattern=r"^[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>/?]{8,20}$",
     )
-    remember:Optional[bool] = False
+    remember: Optional[bool] = False
 
     @classmethod
     def messages(cls):

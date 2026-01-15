@@ -1,12 +1,12 @@
-from flask import jsonify, request
 from datetime import timedelta
+
+from flask import jsonify, request
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
     get_jwt,
     jwt_required,
 )
-from config.jwt import JWTConfig
 
 from app.extension import db
 from app.models import User
@@ -14,6 +14,7 @@ from app.request.auth_request import LoginRequest
 from app.schema.user_schema import UserSchema
 from app.service.auth_service import AuthService
 from app.shared.commons import validate_request
+from config.jwt import JWTConfig
 from config.logging import logger
 
 user_schema = UserSchema(many=False)
@@ -38,14 +39,14 @@ def login_user(payload):
     if payload.remember:
         refresh_token = create_refresh_token(
             identity=user.id,
-             additional_claims={"user": user_data},
-            expires_delta=timedelta(seconds=JWTConfig.JWT_REFRESH_TOKEN_EXPIRES)
+            additional_claims={"user": user_data},
+            expires_delta=timedelta(seconds=JWTConfig.JWT_REFRESH_TOKEN_EXPIRES),
         )
     else:
         refresh_token = create_refresh_token(
             identity=user.id,
-             additional_claims={"user": user_data},
-            expires_delta=timedelta(seconds=JWTConfig.JWT_REFRESH_TOKEN_EXPIRES)
+            additional_claims={"user": user_data},
+            expires_delta=timedelta(seconds=JWTConfig.JWT_REFRESH_TOKEN_EXPIRES),
         )
 
     return jsonify({"access_token": access_token, "refresh_token": refresh_token}), 200
