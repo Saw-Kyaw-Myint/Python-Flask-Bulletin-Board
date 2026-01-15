@@ -8,6 +8,9 @@ class UserDao(BaseDao):
 
     def find_by_email(email: str):
         return User.query.filter_by(email=email, deleted_at=None).first()
+    
+    def update_last_login():
+        return User.query.filter_by(email=email, deleted_at=None).first()
 
     def get_all():
         return User.query.all()
@@ -17,6 +20,9 @@ class UserDao(BaseDao):
 
     def get_by_email(email: str):
         return User.query.filter_by(email=email).first()
+    
+    def get_by_name(name: str):
+        return User.query.filter_by(name=name).first()
 
     def create(user: User):
         db.session.add(user)

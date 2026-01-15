@@ -17,5 +17,5 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         load_instance = False
         include_fk = True
         # Only include these fields
-        fields = ("id", "name", "email", "phone", "profile_path", "dob", "address")
+        fields = ("id", "name", "email", "phone", "profile_path","role", "dob", "address","last_login_at")
         ordered = True

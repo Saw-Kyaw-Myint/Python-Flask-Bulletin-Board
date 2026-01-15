@@ -1,6 +1,9 @@
 from app.dao.user_dao import UserDao
 from app.models import User
 from app.service.base_service import BaseService
+from app.shared.commons import field_error
+from app.utils.hash import hash_password
+from config.logging import logger
 
 
 class UserService(BaseService):
@@ -11,10 +14,23 @@ class UserService(BaseService):
 
     def create(payload):
         # Check unique email
-        if UserDao.get_by_email(payload.email):
-            raise ValueError("Email already exists")
+        if UserDao.get_by_name(payload['name']):
+            field_error('name',"Name already exists",401)
+        
+        if UserDao.get_by_email(payload['email']):
+            field_error('email',"Email already exists",401)
 
-        user = User(name=payload.name, email=payload.email)
+        user = User(
+            name=payload['name'],
+            email=payload['email'],
+            password=hash_password(payload['password']),
+            role=payload['role'],
+            phone=payload['phone'],
+            dob=payload['dob'],
+            address=payload['address'],
+            profile_path=payload['profile'],
+        )
+
         return UserDao.create(user)
 
     def update(user_id, payload):

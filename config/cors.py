@@ -26,7 +26,7 @@ Usage:
 
 # CORS configuration dictionary
 CORS_CONFIG = {
-    "origins": ["http://localhost:3000"],
+    "origins": ["http://localhost:5173"],
     "methods": ["GET", "POST", "PUT", "DELETE"],
     "allow_headers": ["Content-Type", "Authorization"],
     "supports_credentials": True,

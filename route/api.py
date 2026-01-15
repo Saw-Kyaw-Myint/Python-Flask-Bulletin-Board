@@ -14,6 +14,7 @@ from app.shared.commons import before_middleware
 # ///////// implement Blueprint //////////////////////
 user_bp = Blueprint("user", __name__, url_prefix="/users")
 auth_bp = Blueprint("auth", __name__)
+post_bp = Blueprint("post", __name__,url_prefix='/posts')
 
 
 # Apply rate limit to the whole blueprint
@@ -22,14 +23,15 @@ auth_bp = Blueprint("auth", __name__)
 
 # Auth Route
 auth_bp.post("/login")(login_user)
-auth_bp.get("/me")(get_me)
+user_bp.post("/create")(create_user)
 
 # User Route
 before_middleware(user_bp, user_middleware)
 user_bp.get("/")(get_users)
-user_bp.post("/create")(create_user)
 user_bp.put("/update/<int:user_id>")(update_user)
 user_bp.delete("/delete/<int:user_id>")(delete_user)
 
+
+
 # export all Blueprint
-__all__ = ["user_bp", "auth_bp"]
+__all__ = ["user_bp", "auth_bp","post_bp"]

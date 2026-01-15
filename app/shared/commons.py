@@ -10,8 +10,12 @@ def validate_request(schema):
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
+            if request.is_json:
+                data = request.get_json()
+            else:
+                data = request.form.to_dict()
             try:
-                payload = schema.model_validate(request.json)
+                payload = schema.model_validate(data)
             except ValidationError as e:
                 return jsonify({"errors": format_pydantic_errors(e, schema)}), 422
 

@@ -3,15 +3,18 @@ from flask_bcrypt import check_password_hash
 from app.dao.user_dao import UserDao
 from app.service.base_service import BaseService
 from app.shared.commons import field_error
+from datetime import datetime,timezone
 
 
 class AuthService(BaseService):
     def login(payload):
         user = UserDao.find_by_email(payload.email)
+        user.last_login_at = datetime.now(timezone.utc)
         if not user:
             field_error("email", "The Selected Email address doesn't exist.", 401)
 
         if not check_password_hash(user.password, payload.password):
             field_error("password", "The Password Field is required.", 401)
+        UserDao.update()
 
         return user

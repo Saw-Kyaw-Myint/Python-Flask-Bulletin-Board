@@ -1,10 +1,12 @@
 from flask import jsonify, request
+from datetime import timedelta
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
     get_jwt,
     jwt_required,
 )
+from config.jwt import JWTConfig
 
 from app.extension import db
 from app.models import User
@@ -32,7 +34,19 @@ def login_user(payload):
     access_token = create_access_token(
         identity=str(user.id), additional_claims={"user": user_data}
     )
-    refresh_token = create_refresh_token(identity=user.id)
+
+    if payload.remember:
+        refresh_token = create_refresh_token(
+            identity=user.id,
+             additional_claims={"user": user_data},
+            expires_delta=timedelta(seconds=JWTConfig.JWT_REFRESH_TOKEN_EXPIRES)
+        )
+    else:
+        refresh_token = create_refresh_token(
+            identity=user.id,
+             additional_claims={"user": user_data},
+            expires_delta=timedelta(seconds=JWTConfig.JWT_REFRESH_TOKEN_EXPIRES)
+        )
 
     return jsonify({"access_token": access_token, "refresh_token": refresh_token}), 200
 
@@ -54,7 +68,6 @@ def get_me():
         Response (JSON):
             - 200 OK with "user" key containing the current user's data
     """
-    logger.info("hla")
     claims = get_jwt()
     user_info = claims.get("user")  # get full user dict
     return jsonify({"user": user_info}), 200
