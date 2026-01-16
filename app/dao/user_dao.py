@@ -32,13 +32,17 @@ class UserDao(BaseDao):
         # --- DATE FILTER ---
         start_date = filters.get("start_date")
         end_date = filters.get("end_date")
-        if start_date and end_date:
-            try:
+        try:
+            if start_date:
                 start = datetime.fromisoformat(start_date)
+                query = query.filter(User.created_at >= start)
+
+            if end_date:
                 end = datetime.fromisoformat(end_date)
-                query = query.filter(User.created_at.between(start, end))
-            except ValueError as e:
-                logger.error(f"Invalid date format: {e}")
+                query = query.filter(User.created_at <= end)
+
+        except ValueError as e:
+            logger.error(f"Invalid date format: {e}")
 
         # --- ORDER & PAGINATE ---
         return query.order_by(User.created_at.desc()).paginate(
@@ -47,6 +51,11 @@ class UserDao(BaseDao):
 
     def find_by_email(email: str):
         return User.query.filter_by(email=email, deleted_at=None).first()
+
+    def is_valid_user(email: str):
+        return User.query.filter_by(
+            email=email, deleted_at=None, lock_flg=False
+        ).first()
 
     def update_last_login():
         return User.query.filter_by(email=email, deleted_at=None).first()

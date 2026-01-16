@@ -31,7 +31,7 @@ user_bp.post("/create")(create_user)
 before_middleware(user_bp, user_middleware)
 user_bp.get("/")(get_users)
 user_bp.put("/update/<int:user_id>")(update_user)
-user_bp.post("/delete")(delete_users)
+user_bp.post("/multiple-delete")(delete_users)
 user_bp.post("/lock")(lock_users)
 user_bp.post("/unlock")(unlock_users)
 
