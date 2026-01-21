@@ -16,7 +16,7 @@ class UserFactory:
         return {
             "name": fake.name(),
             "email": fake.unique.email(),
-            "password": hash_password("password123"),  # default hashed password
+            "password": hash_password("Password123@"),
             "phone": "09451340513",
             "address": fake.address(),
         }

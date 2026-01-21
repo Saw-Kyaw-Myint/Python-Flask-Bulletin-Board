@@ -24,6 +24,7 @@ Usage:
 """
 
 import os
+from datetime import timedelta
 
 from dotenv import load_dotenv
 
@@ -37,6 +38,6 @@ class JWTConfig:
     """
 
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "fallback_secret")
-    JWT_ACCESS_TOKEN_EXPIRES = int(os.environ.get("JWT_ACCESS_TOKEN_EXPIRES", 60))
-    JWT_REMEMBER_ME_EXPIRES = 60 * 60 * 24 * 30
+    JWT_ACCESS_TOKEN_EXPIRES = int(os.environ.get("JWT_ACCESS_TOKEN_EXPIRES", 300))
+    JWT_REMEMBER_ME_EXPIRES = int(os.environ.get("JWT_REMEMBER_ME_EXPIRES", 604800))
     JWT_REFRESH_TOKEN_EXPIRES = int(os.environ.get("JWT_REFRESH_TOKEN_EXPIRES", 86400))

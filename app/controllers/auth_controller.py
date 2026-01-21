@@ -38,7 +38,8 @@ def login_user(payload):
         access_token = create_access_token(
             identity=str(user.id), additional_claims={"user": user_data}
         )
-        refresh_token = generate_and_save_refresh_token(user.id, payload.remember)
+        remember_me = True if payload.remember else False
+        refresh_token = generate_and_save_refresh_token(user.id, remember_me)
         response = jsonify(access_token=access_token, refresh_token=refresh_token)
         db.session.commit()
 
@@ -61,19 +62,19 @@ def refresh():
 
         if not user:
             return {"msg": "Invalid identity."}, 404
-
         revoke_refresh_token(old_refresh_token)
         new_access_token = create_access_token(
             identity=str(user_id), additional_claims={"user": user_data}
         )
-        new_refresh_token = generate_and_save_refresh_token(
-            user_id, claims["remember_me"]
-        )
+        remember_me = bool(claims.get("remember_me", False))
+        new_refresh_token = generate_and_save_refresh_token(user_id, remember_me)
         resp = jsonify(access_token=new_access_token, refresh_token=new_refresh_token)
         db.session.commit()
 
         return resp, 200
     except Exception as e:
+        logger.error("Auth Controller : refresh")
+        logger.error(e)
         db.session.rollback()
         return jsonify({"message": str(e)}), 409
 

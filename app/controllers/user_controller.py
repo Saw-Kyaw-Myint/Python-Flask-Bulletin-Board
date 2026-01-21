@@ -10,6 +10,7 @@ from app.schema.user_list_schema import UserListSchema
 from app.schema.user_schema import UserSchema
 from app.service.user_service import UserService
 from app.shared.commons import field_error, validate_request
+from flask_jwt_extended import get_jwt_identity
 from config.logging import logger
 
 user_schema = UserSchema()

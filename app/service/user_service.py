@@ -50,11 +50,7 @@ class UserService(BaseService):
 
         exist_name = UserDao.get_by_name(payload["name"])
         exist_email = UserDao.get_by_email(payload["email"])
-        logger.info(exist_email.email)
-        logger.info(user.email)
         if exist_name and exist_name.name != user.name:
-            logger.info(exist_name.email)
-            logger.info(user.email)
             field_error("name", "Name already exists", 402)
 
         if UserDao.get_by_email(payload["email"]) and exist_email.email != user.email:
@@ -67,7 +63,6 @@ class UserService(BaseService):
         user.updated_user_id = payload["user_id"]
 
         if payload.get("password"):
-            logger.info(payload["password"])
             user.password = hash_password(payload["password"])
 
         if payload.get("profile"):
