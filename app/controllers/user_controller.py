@@ -1,16 +1,15 @@
 import os
+from datetime import datetime
 
 from flask import jsonify, request
 from werkzeug.utils import secure_filename
 
+from app.extension import db
 from app.request.user_request import UserCreateRequest, UserUpdateRequest
 from app.schema.user_list_schema import UserListSchema
 from app.schema.user_schema import UserSchema
 from app.service.user_service import UserService
 from app.shared.commons import field_error, validate_request
-from app.extension import db
-from datetime import datetime
-
 from config.logging import logger
 
 user_schema = UserSchema()
@@ -18,6 +17,7 @@ users_schema = UserSchema(many=True)
 user_list = UserListSchema(many=True)
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
 UPLOAD_DIR = "public/images/profile"
+
 
 def get_users():
     filters = {
@@ -53,12 +53,12 @@ def create_user(payload):
     if not file:
         field_error("profile", "The Profile field is required", 422)
     user_id = payload_dict["user_id"]
-    opt_file =  optimize_file(file,user_id)
-    payload_dict["profile"] = opt_file['file_url']
+    opt_file = optimize_file(file, user_id)
+    payload_dict["profile"] = opt_file["file_url"]
 
     try:
         UserService.create(payload_dict)
-        file.save(opt_file['storage_path'])
+        file.save(opt_file["storage_path"])
         db.session.commit()
     except Exception as e:
         db.session.rollback()
@@ -86,9 +86,9 @@ def update_user(payload, id):
     payload_dict = payload.model_dump()
     if file:
         user_id = payload_dict["user_id"]
-        opt_file = optimize_file(file,user_id)
-        file_path = opt_file['storage_path']
-        payload_dict["profile"] = opt_file['file_url']
+        opt_file = optimize_file(file, user_id)
+        file_path = opt_file["storage_path"]
+        payload_dict["profile"] = opt_file["file_url"]
 
     try:
         user = UserService.update(payload_dict, id)
@@ -161,7 +161,7 @@ def unlock_users():
         return jsonify({"msg": str(e)}), 404
 
 
-def optimize_file(file, user_id:str, sub_dir:str= 'profile' ):
+def optimize_file(file, user_id: str, sub_dir: str = "profile"):
     user_dir = os.path.join(UPLOAD_DIR, str(user_id))
     os.makedirs(user_dir, exist_ok=True)
     ext = os.path.splitext(file.filename)[1].lower().lstrip(".")
@@ -174,6 +174,7 @@ def optimize_file(file, user_id:str, sub_dir:str= 'profile' ):
     new_filename = f"{name}_{timestamp}{ext}"
     file_path = os.path.join(user_dir, new_filename)
 
-    return { 
-        "storage_path" :file_path,
-        "file_url":  f"{sub_dir}/{user_id}/{new_filename}"}
+    return {
+        "storage_path": file_path,
+        "file_url": f"{sub_dir}/{user_id}/{new_filename}",
+    }

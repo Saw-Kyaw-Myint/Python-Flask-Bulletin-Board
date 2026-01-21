@@ -38,7 +38,7 @@ class UserService(BaseService):
             dob=payload["dob"],
             address=payload["address"],
             profile_path=payload["profile"],
-            create_user_id= payload['user_id']
+            create_user_id=payload["user_id"],
         )
 
         return UserDao.create(user)
@@ -64,7 +64,7 @@ class UserService(BaseService):
         user.email = payload["email"]
         user.role = payload["role"]
         user.address = payload["address"]
-        user.updated_user_id= payload['user_id']
+        user.updated_user_id = payload["user_id"]
 
         if payload.get("password"):
             logger.info(payload["password"])

@@ -3,10 +3,12 @@ from marshmallow import fields
 from app.extension import ma
 from app.models import User
 
+
 class UserRelationSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = User
         fields = ("id", "name", "email")
+
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
     """
@@ -36,18 +38,14 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
             "create_user_id",
             "updater",
             "updated_at",
-            "updated_user_id"
+            "updated_user_id",
         )
         ordered = True
-    
+
     creator = fields.Nested(
-        UserRelationSchema,
-        only=("id", "name", "email"),
-        dump_only=True
+        UserRelationSchema, only=("id", "name", "email"), dump_only=True
     )
 
     updater = fields.Nested(
-        UserRelationSchema,
-        only=("id", "name", "email"),
-        dump_only=True
+        UserRelationSchema, only=("id", "name", "email"), dump_only=True
     )

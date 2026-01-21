@@ -28,17 +28,11 @@ class User(db.Model):
     deleted_user_id = db.Column(db.BigInteger)
 
     creator = db.relationship(
-        "User",
-        foreign_keys=[create_user_id],
-        remote_side="User.id",
-        uselist=False
+        "User", foreign_keys=[create_user_id], remote_side="User.id", uselist=False
     )
 
     updater = db.relationship(
-        "User",
-        foreign_keys=[updated_user_id],
-        remote_side="User.id",
-        uselist=False
+        "User", foreign_keys=[updated_user_id], remote_side="User.id", uselist=False
     )
 
     _long_names = {

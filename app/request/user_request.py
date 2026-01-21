@@ -65,7 +65,7 @@ class UserCreateRequest(BaseModel):
             if v != password:
                 raise ValueError("Passwords do not match")
         return v
-    
+
     @classmethod
     def messages(cls):
         return {

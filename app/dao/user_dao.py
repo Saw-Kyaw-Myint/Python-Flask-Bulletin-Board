@@ -1,12 +1,12 @@
 from datetime import datetime
 
 from sqlalchemy import or_
+from sqlalchemy.orm import joinedload
 
 from app.dao.base_dao import BaseDao
 from app.extension import db
 from app.models import User
 from config.logging import logger
-from sqlalchemy.orm import joinedload
 
 
 class UserDao(BaseDao):
@@ -54,10 +54,11 @@ class UserDao(BaseDao):
         return User.query.filter_by(email=email, deleted_at=None).first()
 
     def get_user(user_id: int):
-        return User.query.options(
-        joinedload(User.creator),
-        joinedload(User.updater)
-    ).filter_by(id=user_id, deleted_at=None, lock_flg=False).first()
+        return (
+            User.query.options(joinedload(User.creator), joinedload(User.updater))
+            .filter_by(id=user_id, deleted_at=None, lock_flg=False)
+            .first()
+        )
 
     def is_valid_user(email: str):
         return User.query.filter_by(
