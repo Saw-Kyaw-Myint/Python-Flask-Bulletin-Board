@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 
 from app.extension import db
 from app.request.user_request import UserCreateRequest, UserUpdateRequest
+from app.schema.auth_schema import AuthSchema
 from app.schema.user_list_schema import UserListSchema
 from app.schema.user_schema import UserSchema
 from app.service.user_service import UserService
@@ -16,6 +17,8 @@ from config.logging import logger
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 user_list = UserListSchema(many=True)
+auth_schema = AuthSchema()
+
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
 UPLOAD_DIR = "public/images/profile"
 
@@ -61,18 +64,17 @@ def create_user(payload):
         UserService.create(payload_dict)
         file.save(opt_file["storage_path"])
         db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"message": str(e)}), 409
 
-    return (
-        jsonify(
-            {
-                "message": "Register success",
-            }
-        ),
-        201,
-    )
+        return (
+            jsonify({"message": "Register success"}),
+            201,
+        )
+    except Exception as e:
+        logger.error("User Controller : create_user")
+        logger.error(e)
+        db.session.rollback()
+
+        return jsonify({"message": str(e)}), 409
 
 
 def show_user(user_id):
@@ -96,19 +98,17 @@ def update_user(payload, id):
         if file:
             file.save(file_path)
         db.session.commit()
+        user = auth_schema.dump(user)
+
+        return (
+            jsonify({"message": "user update is success", "user": user}),
+            201,
+        )
     except Exception as e:
+        logger.error("User Controller : update_user")
+        logger.error(e)
         db.session.rollback()
         return jsonify({"message": str(e)}), 409
-
-    return (
-        jsonify(
-            {
-                "message": "user update is success",
-                "user": {"id": user.id, "name": user.name, "email": user.email},
-            }
-        ),
-        201,
-    )
 
 
 def delete_users():

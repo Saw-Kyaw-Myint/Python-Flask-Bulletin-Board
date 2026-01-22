@@ -38,7 +38,7 @@ jwt = JWTManager(app)
 import route.api as routes
 
 
-@app.route("/images/<path:filename>", methods=["GET"])
+@app.route("/api/images/<path:filename>", methods=["GET"])
 def serve_image(filename):
     basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     uploads_path = os.path.join(basedir, "public", "images")

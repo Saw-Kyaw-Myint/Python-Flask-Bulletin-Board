@@ -12,7 +12,7 @@ from flask_jwt_extended import (
 from app.extension import db
 from app.models import User
 from app.request.auth_request import LoginRequest
-from app.schema.user_schema import UserSchema
+from app.schema.auth_schema import AuthSchema
 from app.service.auth_service import AuthService
 from app.service.user_service import UserService
 from app.shared.commons import validate_request
@@ -24,7 +24,7 @@ from app.utils.token import (
 from config.jwt import JWTConfig
 from config.logging import logger
 
-user_schema = UserSchema(many=False)
+auth_schema = AuthSchema()
 
 
 @validate_request(LoginRequest)
@@ -34,7 +34,7 @@ def login_user(payload):
     """
     try:
         user = AuthService.login(payload)
-        user_data = user_schema.dump(user)
+        user_data = auth_schema.dump(user)
         access_token = create_access_token(
             identity=str(user.id), additional_claims={"user": user_data}
         )
@@ -56,7 +56,7 @@ def refresh():
         old_refresh_token = request.headers.get("X-refresh-token")
         user_id = get_jwt_identity()
         user = UserService.get_user(user_id)
-        user_data = user_schema.dump(user)
+        user_data = auth_schema.dump(user)
         if is_refresh_token_revoked(old_refresh_token):
             return {"msg": "Refresh token invalid."}, 402
 
