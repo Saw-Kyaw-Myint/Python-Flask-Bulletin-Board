@@ -12,7 +12,7 @@ class UserFactory:
 
     # create admin account
     def create_admin():
-        admin = User.query.filter_by(email="admin@example.com").first()
+        admin = User.query.filter_by(email="admin@admin.com").first()
         if admin:
             return admin
 
