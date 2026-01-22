@@ -45,7 +45,7 @@ def serve_image(filename):
     return send_from_directory(uploads_path, filename)
 
 
-@app.route("/")
+@app.route("/api/test")
 def initialRoute():
     return "<h1 style='text-align: center; margin-top:250px; font-size: 60px;'>Hello World</p>"
 

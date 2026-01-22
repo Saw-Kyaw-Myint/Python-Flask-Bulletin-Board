@@ -126,3 +126,20 @@ After running the seeder, you can log in using the admin account below.
 ```
  $ py format
 ```
+
+## 🔗 API Endpoint
+
+**Base API URL** <br>
+<a _target_="blank">http://127.0.0.1:5000/api</a><br>
+
+### 🧪 Test Routes
+
+`Click` -> <a _target_="blank">http://127.0.0.1:5000/api/test</a>
+
+### 📝 <u>Note</u>
+
+If you open a new terminal, make sure to activate the Poetry environment:
+
+```bash
+$ poetry shell
+```
