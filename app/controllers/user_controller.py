@@ -11,7 +11,7 @@ from app.schema.auth_schema import AuthSchema
 from app.schema.user_list_schema import UserListSchema
 from app.schema.user_schema import UserSchema
 from app.service.user_service import UserService
-from app.shared.commons import field_error, validate_request
+from app.shared.commons import field_error, paginate_response, validate_request
 from config.logging import logger
 
 user_schema = UserSchema()
@@ -34,20 +34,9 @@ def get_users():
 
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 10, type=int)
-
     pagination = UserService.filter_paginate(filters, page, per_page)
 
-    return jsonify(
-        {
-            "data": user_list.dump(pagination.items),
-            "meta": {
-                "page": pagination.page,
-                "per_page": pagination.per_page,
-                "total": pagination.total,
-                "pages": pagination.pages,
-            },
-        }
-    )
+    return paginate_response(pagination, user_list)
 
 
 @validate_request(UserCreateRequest)
@@ -100,14 +89,12 @@ def update_user(payload, id):
         db.session.commit()
         user = auth_schema.dump(user)
 
-        return (
-            jsonify({"message": "user update is success", "user": user}),
-            201,
-        )
+        return jsonify({"message": "user update is success", "user": user}), 201
     except Exception as e:
         logger.error("User Controller : update_user")
         logger.error(e)
         db.session.rollback()
+
         return jsonify({"message": str(e)}), 409
 
 

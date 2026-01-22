@@ -32,21 +32,17 @@ def login_user(payload):
     """
     Authenticate a user and return JWT access and refresh tokens.
     """
-    try:
-        user = AuthService.login(payload)
-        user_data = auth_schema.dump(user)
-        access_token = create_access_token(
-            identity=str(user.id), additional_claims={"user": user_data}
-        )
-        remember_me = True if payload.remember else False
-        refresh_token = generate_and_save_refresh_token(user.id, remember_me)
-        response = jsonify(access_token=access_token, refresh_token=refresh_token)
-        db.session.commit()
+    user = AuthService.login(payload)
+    user_data = auth_schema.dump(user)
+    access_token = create_access_token(
+        identity=str(user.id), additional_claims={"user": user_data}
+    )
+    remember_me = True if payload.remember else False
+    refresh_token = generate_and_save_refresh_token(user.id, remember_me)
+    response = jsonify(access_token=access_token, refresh_token=refresh_token)
+    db.session.commit()
 
-        return response, 200
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"msg": str(e)}), 409
+    return response, 200
 
 
 @jwt_required(refresh=True)

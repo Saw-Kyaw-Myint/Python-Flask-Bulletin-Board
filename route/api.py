@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from app.controllers.auth_controller import login_user, logout, refresh
+from app.controllers.post_controller import post_list
 from app.controllers.user_controller import (
     create_user,
     delete_users,
@@ -11,6 +12,7 @@ from app.controllers.user_controller import (
     update_user,
 )
 from app.extension import limiter
+from app.middleware.post_middleware import post_middleware
 from app.middleware.user_middleware import user_middleware
 from app.shared.commons import before_middleware
 from config.logging import logger
@@ -41,6 +43,10 @@ user_bp.post("/multiple-delete")(delete_users)
 user_bp.post("/lock")(lock_users)
 user_bp.post("/unlock")(unlock_users)
 
+
+# Post Route
+before_middleware(post_bp, post_middleware)
+post_bp.get("/")(post_list)
 
 # export all Blueprint
 __all__ = ["user_bp", "auth_bp", "post_bp"]

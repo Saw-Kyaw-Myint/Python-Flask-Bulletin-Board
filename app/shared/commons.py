@@ -1,6 +1,9 @@
 from functools import wraps
+from typing import Any
 
 from flask import abort, jsonify, make_response, request
+from flask.wrappers import Response
+from marshmallow import Schema
 from pydantic import ValidationError
 
 from config.logging import logger
@@ -105,3 +108,23 @@ def field_error(field: str, message: str, status_code: int = 400):
     """
     response = make_response(jsonify({"errors": {field: message}}), status_code)
     abort(response)
+
+
+def paginate_response(pagination: Any, schema: Schema) -> Response:
+    """
+    Return a standard JSON response for paginated data.
+
+    :param pagination: The pagination object from SQLAlchemy (e.g., query.paginate())
+    :param schema: Marshmallow schema for serializing items
+    """
+    return jsonify(
+        {
+            "data": schema.dump(pagination.items),
+            "meta": {
+                "page": pagination.page,
+                "per_page": pagination.per_page,
+                "total": pagination.total,
+                "pages": pagination.pages,
+            },
+        }
+    )
