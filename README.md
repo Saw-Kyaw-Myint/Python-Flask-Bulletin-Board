@@ -109,9 +109,9 @@ $ flask db:seed
 $ flask run --debug
 ```
 
-### Seeder Information
+## Seeder Information
 
-After running the seeder, you can log in using the admin account below.
+After running the seeder, you can `LogIn` using the `Admin Account` below.
 
 ```
 "name"     : "Admin",
@@ -121,7 +121,7 @@ After running the seeder, you can log in using the admin account below.
 "address"  : "Admin Address",
 ```
 
-### Code Formatting (Before Commit)
+## Code Formatting (Before Commit)
 
 ```
  $ py format
