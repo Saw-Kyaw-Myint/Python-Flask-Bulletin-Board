@@ -44,9 +44,9 @@ No need to configure following basic requirement and support example code.
 ### 1. Clone the repository
 
 ```bash
-$ git clone https://github.com/Saw-Kyaw-Myint/python-flask-folder-structure-configuration.git
+$ git clone https://github.com/Saw-Kyaw-Myint/python-Bulletin-Board.git
 
-$ cd python-flask-folder-structure-configuration
+$ cd python-Bulletin-Board
 ```
 
 ### 2. Install dependencies
@@ -73,24 +73,38 @@ $ poetry env list
 $ cp .env.example .env
 ```
 
-### 5. Run the Flask application
+### 5. Configure Setting in .env
 
 ```
-$ flask run
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=root
+DB_NAME=python_bulletin
+
+# JWT configuration
+JWT_SECRET_KEY=your_super_secret_key
+JWT_ACCESS_TOKEN_EXPIRES=3600
+JWT_REFRESH_TOKEN_EXPIRES=86400
 ```
 
-### Run Format
+### 6. Run Database Migration
+
+If fail use `poetry run flask db upgrade`
+
+```
+flask db upgrade
+```
+
+### 7. Run The Flask application Development
+
+```
+$ flask run --debug
+```
+
+### Run Format Before Commit
 
 ```
 $ py format
 ```
-
-## <u>Reference</u>
-
-https://www.digitalocean.com/community/tutorials/how-to-perform-flask-sqlalchemy-migrations-using-flask-migrate
-
----
-
-## <u>Project Reference</u>
-
-https://github.com/demoskp/flask-marshmallow-tutorial/blob/master/poetry.lock
