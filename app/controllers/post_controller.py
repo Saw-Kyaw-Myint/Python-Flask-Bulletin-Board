@@ -1,8 +1,11 @@
 from flask import jsonify, request
+from werkzeug.exceptions import HTTPException
 
+from app.extension import db
+from app.request.post_request import CreatePostRequest, UpdatePostRequest
 from app.schema.post_schema import PostSchema
 from app.service.post_service import PostService
-from app.shared.commons import paginate_response
+from app.shared.commons import paginate_response, validate_request
 from config.logging import logger
 
 posts_schema = PostSchema(many=True)
@@ -26,6 +29,45 @@ def post_list():
     return paginate_response(posts, posts_schema)
 
 
+@validate_request(CreatePostRequest)
+def create_post(payload):
+    """
+    Create post
+    """
+    try:
+        PostService.create_post(payload)
+        db.session.commit()
+        return jsonify({"message": "Post creation is success."}), 201
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.exception(e)
+        return jsonify({"message": "Internal server error"}), 500
+
+
+def show_post(post_id):
+    """
+    Get User by user id
+    """
+    post = PostService.get_post(post_id)
+    return jsonify(post_schema.dump(post)), 200
+
+
+@validate_request(UpdatePostRequest)
+def update_post(payload, id):
+    try:
+        post = PostService.update_post(payload, id)
+        db.session.commit()
+        return jsonify({"message": f"{(post.id)} Post update successfully"}), 200
+    except HTTPException as e:
+        db.session.rollback()
+        return e
+    except Exception as e:
+        db.session.rollback()
+        logger.error(e)
+        return jsonify({"message": "Internal server error"}), 500
+
+
 def delete_posts():
     """_Delete posts_
 
@@ -44,11 +86,3 @@ def delete_posts():
         logger.error("Post Controller : delete_posts")
         logger.error(e)
         return jsonify({"msg": str(e)}), 404
-
-
-def show_post(post_id):
-    """
-    Get User by user id
-    """
-    post = PostService.get_post(post_id)
-    return jsonify(post_schema.dump(post)), 200

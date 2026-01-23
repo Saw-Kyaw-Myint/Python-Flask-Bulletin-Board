@@ -46,6 +46,13 @@ class PostDao(BaseDao):
             page=page, per_page=per_page, error_out=False
         )
 
+    def create(post: Post):
+        """
+        Add post to session
+        """
+        db.session.add(post)
+        return post
+
     def get_post(post_id: int):
         """
         Get Post using post id
@@ -67,3 +74,9 @@ class PostDao(BaseDao):
             post.soft_delete()
         db.session.commit()
         return posts
+
+    def get_by_title(title, post_id):
+        """
+        Get post by title
+        """
+        return Post.query.filter(Post.title == title, Post.id != post_id).first()
