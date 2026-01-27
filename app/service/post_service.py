@@ -76,4 +76,7 @@ class PostService(BaseService):
         return posts
 
     def get_post_by_ids(post_ids):
+        """
+        Get posts by using post_ids
+        """
         return PostDao.get_post_by_ids(post_ids)

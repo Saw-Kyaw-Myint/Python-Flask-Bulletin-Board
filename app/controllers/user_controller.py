@@ -12,7 +12,12 @@ from app.schema.auth_schema import AuthSchema
 from app.schema.user_list_schema import UserListSchema
 from app.schema.user_schema import UserSchema
 from app.service.user_service import UserService
-from app.shared.commons import field_error, paginate_response, validate_request
+from app.shared.commons import (
+    MAX_FILE_SIZE,
+    field_error,
+    paginate_response,
+    validate_request,
+)
 from app.utils.log import log_handler
 from config.logging import logger
 
@@ -56,7 +61,7 @@ def create_user(payload):
     file = request.files.get("profile")
     payload_dict = payload.model_dump()
     if not file:
-        field_error("profile", "The Profile field is required", 422)
+        field_error("profile", "The Profile field is required", 400)
     user_id = payload_dict["user_id"]
     opt_file = optimize_file(file, user_id)
     payload_dict["profile"] = opt_file["file_url"]
@@ -185,10 +190,15 @@ def optimize_file(file, user_id: str, sub_dir: str = "profile"):
     """
     user_dir = os.path.join(UPLOAD_DIR, str(user_id))
     os.makedirs(user_dir, exist_ok=True)
-    ext = os.path.splitext(file.filename)[1].lower().lstrip(".")
+    file.stream.seek(0, os.SEEK_END)
+    file_size = file.stream.tell()
+    file.stream.seek(0)
+    if file_size > MAX_FILE_SIZE:
+        field_error("profile", "File size must not exceed 1 MB", 400)
 
+    ext = os.path.splitext(file.filename)[1].lower().lstrip(".")
     if ext not in ALLOWED_EXTENSIONS:
-        field_error("profile", "The profile must be a file  of type.jpg,png", 422)
+        field_error("profile", "The profile must be a file  of type.jpg,png", 400)
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     original_filename = secure_filename(file.filename)
     name, ext = os.path.splitext(original_filename)

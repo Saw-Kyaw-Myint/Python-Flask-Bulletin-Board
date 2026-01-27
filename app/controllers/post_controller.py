@@ -43,6 +43,7 @@ def create_post(payload):
         db.session.commit()
         return jsonify({"msg": "Post creation is success."}), 200
     except HTTPException as e:
+        db.session.rollback()
         raise e
     except Exception as e:
         db.session.rollback()
@@ -68,6 +69,7 @@ def update_post(payload, id):
         db.session.commit()
         return jsonify({"msg": f"{(post.id)} Post update successfully"}), 200
     except HTTPException as e:
+        db.session.rollback()
         return e
     except Exception as e:
         db.session.rollback()

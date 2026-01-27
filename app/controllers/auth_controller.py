@@ -8,6 +8,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
+from werkzeug.exceptions import HTTPException
 
 from app.extension import db
 from app.models import User
@@ -33,21 +34,32 @@ def login_user(payload):
     """
     Authenticate a user and return JWT access and refresh tokens.
     """
-    user = AuthService.login(payload)
-    user_data = auth_schema.dump(user)
-    access_token = create_access_token(
-        identity=str(user.id), additional_claims={"user": user_data}
-    )
-    remember_me = True if payload.remember else False
-    refresh_token = generate_and_save_refresh_token(user.id, remember_me)
-    response = jsonify(access_token=access_token, refresh_token=refresh_token)
-    db.session.commit()
+    try:
+        user = AuthService.login(payload)
+        user_data = auth_schema.dump(user)
+        access_token = create_access_token(
+            identity=str(user.id), additional_claims={"user": user_data}
+        )
+        remember_me = True if payload.remember else False
+        refresh_token = generate_and_save_refresh_token(user.id, remember_me)
+        response = jsonify(access_token=access_token, refresh_token=refresh_token)
+        db.session.commit()
 
-    return response, 200
+        return response, 200
+    except HTTPException as e:
+        db.session.rollback()
+        return e
+    except Exception as e:
+        log_handler("error", "Auth Controller : login_user =>", e)
+        db.session.rollback()
+        return jsonify({"msg": str(e)}), 500
 
 
 @jwt_required(refresh=True)
 def refresh():
+    """
+    Generate Refresh token and Access Token
+    """
     try:
         claims = get_jwt()
         old_refresh_token = request.headers.get("X-refresh-token")
@@ -72,37 +84,43 @@ def refresh():
     except Exception as e:
         log_handler("error", "Auth Controller : refresh =>", e)
         db.session.rollback()
-        return jsonify({"message": str(e)}), 409
+        return jsonify({"msg": str(e)}), 500
 
 
-@jwt_required()
-def get_me():
-    """
-    Retrieve the currently authenticated user's information.
-    """
-    claims = get_jwt()
-    user_info = claims.get("user")  # get full user dict
-    return jsonify({"user": user_info}), 200
+# @jwt_required()
+# def get_me():
+#     """
+#     Retrieve the currently authenticated user's information.
+#     """
+#     claims = get_jwt()
+#     user_info = claims.get("user")  # get full user dict
+#     return jsonify({"user": user_info}), 200
 
 
 @jwt_required()
 def logout():
+    """
+    Logout
+    """
     try:
         old_refresh_token = request.headers.get("X-refresh-token")
         revoke_refresh_token(old_refresh_token)
         resp = jsonify({"msg": "Logout is success"})
+        db.session.commit()
 
         return resp, 200
-        db.session.commit()
     except Exception as e:
         db.session.rollback()
-        return jsonify({"message": str(e)}), 409
+        return jsonify({"msg": str(e)}), 500
 
 
 def generate_and_save_refresh_token(
     user_id,
     isRememberMe,
 ):
+    """
+    Action to generate refresh token and access token
+    """
     if isRememberMe:
         expire_timedelta = timedelta(seconds=JWTConfig.JWT_REMEMBER_ME_EXPIRES)
         expires_at = datetime.utcnow() + expire_timedelta

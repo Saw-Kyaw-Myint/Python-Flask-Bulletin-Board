@@ -9,6 +9,9 @@ from app.shared.commons import field_error
 
 class AuthService(BaseService):
     def login(payload):
+        """
+        Login and update last_login_at
+        """
         user = UserDao.is_valid_user(payload.email)
         if not user:
             field_error(
@@ -18,6 +21,5 @@ class AuthService(BaseService):
         if not check_password_hash(user.password, payload.password):
             field_error("password", "The Password Field is required.", 400)
         user.last_login_at = datetime.now(timezone.utc)
-        UserDao.update()
 
         return user

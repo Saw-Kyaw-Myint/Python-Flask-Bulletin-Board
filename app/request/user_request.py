@@ -65,7 +65,7 @@ class UserCreateRequest(BaseModel):
     def messages(cls):
         return {
             "name.missing": "The Name field is required.",
-            "email.missing": "The Name field is required.",
+            "email.missing": "The Email field is required.",
             "email.value_error": "The Email Address format is invalid.",
             "email.too_long": "The Email may not be greater than 50 characters.",
             "password.missing": "The Password field is required.",
