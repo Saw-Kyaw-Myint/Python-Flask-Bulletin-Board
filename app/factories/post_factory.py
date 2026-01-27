@@ -20,7 +20,7 @@ class PostFactory:
             "status": fake.random_element(elements=(0, 1)),
             "create_user_id": user_id,
             "updated_user_id": user_id,
-            "deleted_user_id": None, 
+            "deleted_user_id": None,
         }
 
     def create():

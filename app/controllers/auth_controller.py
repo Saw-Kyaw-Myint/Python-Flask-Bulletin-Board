@@ -16,6 +16,7 @@ from app.schema.auth_schema import AuthSchema
 from app.service.auth_service import AuthService
 from app.service.user_service import UserService
 from app.shared.commons import validate_request
+from app.utils.log import log_handler
 from app.utils.token import (
     is_refresh_token_revoked,
     revoke_refresh_token,
@@ -23,7 +24,6 @@ from app.utils.token import (
 )
 from config.jwt import JWTConfig
 from config.logging import logger
-from app.utils.log  import log_handler
 
 auth_schema = AuthSchema()
 
@@ -70,7 +70,7 @@ def refresh():
 
         return resp, 200
     except Exception as e:
-        log_handler("error","Auth Controller : refresh =>",e)
+        log_handler("error", "Auth Controller : refresh =>", e)
         db.session.rollback()
         return jsonify({"message": str(e)}), 409
 
@@ -79,18 +79,6 @@ def refresh():
 def get_me():
     """
     Retrieve the currently authenticated user's information.
-
-    This endpoint requires a valid JWT access token. It extracts the user
-    information stored in the JWT claims and returns it.
-
-    Steps:
-        1. Verify JWT token using @jwt_required().
-        2. Extract the user claims from the JWT.
-        3. Return the full user dictionary as a JSON response.
-
-    Returns:
-        Response (JSON):
-            - 200 OK with "user" key containing the current user's data
     """
     claims = get_jwt()
     user_info = claims.get("user")  # get full user dict

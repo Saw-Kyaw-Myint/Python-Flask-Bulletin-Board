@@ -1,4 +1,5 @@
 from datetime import datetime
+from itertools import batched
 
 from flask_jwt_extended import get_jwt_identity
 from sqlalchemy import or_
@@ -8,13 +9,14 @@ from app.dao.base_dao import BaseDao
 from app.extension import db
 from app.models import User
 from app.models.scopes import UserScopes
+from app.shared.commons import BATCH_SIZE
 from config.logging import logger
 
 
 class UserDao(BaseDao):
     """Handles direct database operations"""
 
-    def find_one(include_deleted=False, **filters):
+    def find_one(include_deleted: bool = False, **filters):
         """
         To Search specific column
         """
@@ -27,7 +29,7 @@ class UserDao(BaseDao):
 
     def is_valid_user(email: str):
         """
-        Search unlock user with email
+        Check unLock user
         """
         return User.query.filter_by(
             email=email, deleted_at=None, lock_flg=False
@@ -51,39 +53,53 @@ class UserDao(BaseDao):
         )
 
     def create(user: User):
+        """
+        Create User
+        """
         db.session.add(user)
         return user
 
     def get_user(user_id: int):
+        """
+        Get User with relationship
+        """
         return (
             User.query.options(joinedload(User.creator), joinedload(User.updater))
             .filter_by(id=user_id, deleted_at=None, lock_flg=False)
             .first()
         )
 
-    def update():
-        db.session.commit()
-
     def delete_users(user_ids: list[int]):
         """
-        Delete users by user_ids
+        Soft delete users by user ids in batches
         """
-        users = User.query.filter(
-            User.id.in_(user_ids), User.deleted_at.is_(None)
-        ).all()
-        for user in users:
-            user.soft_delete()
-        db.session.commit()
-        return users
+        deleted_count = 0
+        for batch in batched(user_ids, BATCH_SIZE):
+            logger.info(batch)
+            users = User.query.filter(
+                User.id.in_(batch), User.deleted_at.is_(None)
+            ).all()
+            for user in users:
+                user.soft_delete()
+                deleted_count += 1
+        return deleted_count
+
+    def delete_all_users(exclude_ids: list[int]):
+        """
+        Delete all user or all except exclude_ids.
+        """
+        query = User.query.filter(User.deleted_at.is_(None))
+        if exclude_ids:
+            query = query.filter(~User.id.in_(exclude_ids))
+        deleted_count = query.update(
+            {"deleted_at": datetime.utcnow()}, synchronize_session=False
+        )
+        db.session.flush()
+        return deleted_count
 
     def lock_users(user_ids: list[int]):
-        """_ Lock multiple users by updating lock_flg, lock_count, last_lock_at_
-
-        Args:
-            user_ids (list[int]): _users ids_
-
-        Returns:
-            _list[int]_: _locked users_
+        """
+        Lock multiple users by updating lock_flg, lock_count, last_lock_at_
         """
         users = User.query.filter(
             User.id.in_(user_ids), User.deleted_at.is_(None)
@@ -92,12 +108,11 @@ class UserDao(BaseDao):
             user.lock_flg = True
             user.lock_count = (user.lock_count or 0) + 1
             user.last_lock_at = datetime.utcnow()
-        db.session.commit()
         return users
 
     def unlock_users(user_ids: list[int]):
         """
-         UnLock multiple users by updating lock_flg, last_lock_at_
+        UnLock multiple users by updating lock_flg, last_lock_at_
         """
         users = User.query.filter(
             User.id.in_(user_ids), User.deleted_at.is_(None)
@@ -105,5 +120,4 @@ class UserDao(BaseDao):
         for user in users:
             user.lock_flg = False
             user.last_lock_at = None
-        db.session.commit()
         return users

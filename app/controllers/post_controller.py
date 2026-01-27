@@ -9,8 +9,8 @@ from app.request.post_request import CreatePostRequest, UpdatePostRequest
 from app.schema.post_schema import PostSchema
 from app.service.post_service import PostService
 from app.shared.commons import paginate_response, raise_error, validate_request
-from config.logging import logger
 from app.utils.log import log_handler
+from config.logging import logger
 
 posts_schema = PostSchema(many=True)
 post_schema = PostSchema()
@@ -46,7 +46,7 @@ def create_post(payload):
         raise e
     except Exception as e:
         db.session.rollback()
-        log_handler('error', "Post Controller : create_post =>",e)
+        log_handler("error", "Post Controller : create_post =>", e)
         return jsonify({"msg": str(e)}), 500
 
 
@@ -71,13 +71,13 @@ def update_post(payload, id):
         return e
     except Exception as e:
         db.session.rollback()
-        log_handler("error", "Post Controller: update_post",e)
+        log_handler("error", "Post Controller: update_post", e)
         return jsonify({"msg": str(e)}), 500
 
 
 def delete_posts():
     """
-      Delete posts
+    Delete posts
     """
     payload = request.get_json(silent=True)
     if not payload:
@@ -91,13 +91,13 @@ def delete_posts():
         raise e
     except Exception as e:
         db.session.rollback()
-        log_handler('error',"Post Controller : delete_posts",e)
+        log_handler("error", "Post Controller : delete_posts", e)
         return jsonify({"msg": str(e)}), 500
 
 
 def export_csv():
     """
-      Export CSV
+    Export CSV
     """
     try:
         data = request.get_json(silent=True) or {}
@@ -151,5 +151,5 @@ def export_csv():
 
         return response
     except Exception as e:
-        log_handler('error', "Post Controller : export_csv =>",e)
+        log_handler("error", "Post Controller : export_csv =>", e)
         return jsonify({"message": str(e)}), 500

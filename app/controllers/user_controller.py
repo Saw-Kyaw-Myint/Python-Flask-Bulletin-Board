@@ -45,7 +45,7 @@ def get_users():
         return paginate_response(pagination, user_list)
     except Exception as e:
         log_handler("error", "User Controller : get_users", e)
-        return jsonify({"message": str(e)}), 500
+        return jsonify({"msg": str(e)}), 500
 
 
 @validate_request(UserCreateRequest)
@@ -65,14 +65,14 @@ def create_user(payload):
         UserService.create(payload_dict)
         file.save(opt_file["storage_path"])
         db.session.commit()
-
-        return jsonify({"message": "Register success"}), 201
-    except Exception as e:
-        logger.error("User Controller : create_user")
-        logger.error(e)
+        return jsonify({"msg": "Register success"}), 200
+    except HTTPException as e:
         db.session.rollback()
-
-        return jsonify({"message": str(e)}), 500
+        return e
+    except Exception as e:
+        db.session.rollback()
+        log_handler("error", "User Controller : create_user =>", e)
+        return jsonify({"msg": str(e)}), 500
 
 
 def show_user(user_id):
@@ -104,33 +104,35 @@ def update_user(payload, id):
         db.session.commit()
         user = auth_schema.dump(user)
 
-        return jsonify({"message": "user update is success", "user": user}), 200
+        return jsonify({"msg": "user update is success", "user": user}), 200
     except HTTPException as e:
+        db.session.rollback()
         return e
     except Exception as e:
         log_handler("error", "User Controller", e)
         db.session.rollback()
 
-        return jsonify({"message": str(e)}), 500
+        return jsonify({"msg": str(e)}), 500
 
 
 def delete_users():
-    """_Delete users_
-
-    Returns:
-        _json_: _Error or Success_
     """
-    data = request.get_json() or {}
-    user_ids = data.get("user_ids")
-    if not isinstance(user_ids, list) or not user_ids:
-        return jsonify({"msg": "Provide a list of user IDs"}), 400
+    Delete users
+    """
+    payload = request.get_json(silent=True)
+    if not payload:
+        return jsonify({"msg": "empty data"}), 400
     try:
-        users = UserService.delete_users(user_ids)
-        return jsonify({"msg": f"{len(users)} users deleted successfully"}), 200
+        deleted_user_count = UserService.delete_users(payload)
+        db.session.commit()
+        return jsonify({"msg": f"{deleted_user_count} users deleted successfully"}), 200
     except ValueError as e:
-        return jsonify({"msg": str(e)})
+        db.session.rollback()
+        raise e
     except Exception as e:
-        return jsonify({"msg": str(e)}), 404
+        log_handler("error", "User Controller : delete_users =>", e)
+        db.session.rollback()
+        return jsonify({"msg": str(e)}), 500
 
 
 def lock_users():
@@ -139,35 +141,48 @@ def lock_users():
     Returns:
         _json_: _Error or Success_
     """
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     user_ids = data.get("user_ids")
     if not isinstance(user_ids, list) or not user_ids:
         return jsonify({"msg": "Provide a list of user IDs"}), 400
     try:
         users = UserService.lock_users(user_ids)
+        db.session.commit()
         return jsonify({"msg": f"{len(users)} users locked successfully"}), 200
     except ValueError as e:
-        return jsonify({"msg": str(e)}), 404
+        db.session.rollback()
+        raise e
+    except Exception as e:
+        log_handler("error", "User Controller : lock_users =>", e)
+        db.session.rollback()
+        return jsonify({"msg": str(e)}), 500
 
 
 def unlock_users():
-    """_Unlock users_
-
-    Returns:
-        _json_: _Error or Success_
     """
-    data = request.get_json() or {}
+    Unlock users
+    """
+    data = request.get_json(silent=True) or {}
     user_ids = data.get("user_ids")
     if not isinstance(user_ids, list) or not user_ids:
         return jsonify({"msg": "Provide a list of user IDs"}), 400
     try:
         users = UserService.unlock_users(user_ids)
+        db.session.commit()
         return jsonify({"msg": f"{len(users)} users unlocked successfully"}), 200
     except ValueError as e:
-        return jsonify({"msg": str(e)}), 404
+        db.session.rollback()
+        raise e
+    except Exception as e:
+        log_handler("error", "User Controller : unlock_users =>", e)
+        db.session.rollback()
+        return jsonify({"msg": str(e)}), 500
 
 
 def optimize_file(file, user_id: str, sub_dir: str = "profile"):
+    """
+    Optimize file
+    """
     user_dir = os.path.join(UPLOAD_DIR, str(user_id))
     os.makedirs(user_dir, exist_ok=True)
     ext = os.path.splitext(file.filename)[1].lower().lstrip(".")

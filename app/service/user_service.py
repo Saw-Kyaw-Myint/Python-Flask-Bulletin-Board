@@ -12,16 +12,25 @@ class UserService(BaseService):
     """Handles business logic"""
 
     def filter_paginate(filters, page: int, per_page: int):
+        """
+        User List with pagination
+        """
         users = UserDao.paginate(filters, page, per_page)
         return users
 
     def get_user(user_id):
+        """
+        Get User by User ID
+        """
         user = UserDao.get_user(user_id)
         if not user:
-            return ValueError("User don't not exist.")
+            raise ValueError("User don't not exist.")
         return user
 
     def create(payload):
+        """
+        Create User
+        """
         if UserDao.find_one(name=payload["name"]):
             field_error("name", "Name already exists", 400)
 
@@ -43,6 +52,9 @@ class UserService(BaseService):
         return UserDao.create(user)
 
     def update(payload, id):
+        """
+        Update User
+        """
         user = UserDao.find_one(id=id, include_deleted=False)
         if not user:
             field_error("internal_error", "Email  don't exists", 400)
@@ -68,34 +80,24 @@ class UserService(BaseService):
             user.profile_path = payload["profile"]
         return user
 
-    def delete_users(user_ids):
-        """_Delete Users_
-
-        Args:
-            user_ids (_List[int]_): _user's ids_
-
-        Raises:
-            ValueError: _not user found_
-
-        Returns:
-            _list[int]_: _deleted users_
+    def delete_users(payload):
         """
-        users = UserDao.delete_users(user_ids)
-        if not users:
-            raise ValueError("not user found")
-        return users
+        Delete Users
+        """
+        select_all = payload.get("all", False)
+        user_ids = payload.get("user_ids", [])
+        exclude_ids = payload.get("exclude_ids", [])
+        if select_all:
+            user_count = UserDao.delete_all_users(exclude_ids)
+        else:
+            if not isinstance(user_ids, list) or not user_ids:
+                raise ValueError("Provide user ids list.")
+            user_count = UserDao.delete_users(user_ids)
+        return user_count
 
     def lock_users(users_ids):
-        """_Lock User_
-
-        Args:
-            users_ids (_list[int]_): _user's ids_
-
-        Raises:
-            ValueError: _not user found_
-
-        Returns:
-            _list[int]_: _lock users_
+        """
+        Lock User
         """
         users = UserDao.lock_users(users_ids)
         if not users:
@@ -103,16 +105,8 @@ class UserService(BaseService):
         return users
 
     def unlock_users(users_ids):
-        """_unLock User_
-
-        Args:
-            users_ids (_list[int]_): _user's ids_
-
-        Raises:
-            ValueError: _not user found_
-
-        Returns:
-            _list[int]_: _unlock users_
+        """
+        UnLock User
         """
         users = UserDao.unlock_users(users_ids)
         if not users:
