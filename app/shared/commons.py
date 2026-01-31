@@ -130,9 +130,6 @@ def raise_error(name: str, message: str, status_code: int = 400):
 def paginate_response(pagination: Any, schema: Schema) -> Response:
     """
     Return a standard JSON response for paginated data.
-
-    :param pagination: The pagination object from SQLAlchemy (e.g., query.paginate())
-    :param schema: Marshmallow schema for serializing items
     """
     return jsonify(
         {
@@ -145,3 +142,7 @@ def paginate_response(pagination: Any, schema: Schema) -> Response:
             },
         }
     )
+
+
+def response_valid_request():
+    return {"is_valid_request": True}

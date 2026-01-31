@@ -97,6 +97,13 @@ class PostDao(BaseDao):
         query = Post.query.filter(Post.id.in_(post_ids))
         return query.yield_per(1000)
 
+    def find_one(include_deleted: bool = False, **filters):
+        """To Search specific column"""
+        query = Post.query
+        if not include_deleted:
+            query = PostScopes.active(query)
+        return query.filter_by(**filters).first()
+
     def filters_query(query, filters, active=True, latest=True):
         """Filter Query"""
         if active:

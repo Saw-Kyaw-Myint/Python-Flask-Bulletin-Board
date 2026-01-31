@@ -5,7 +5,7 @@ from app.dao.post_dao import PostDao
 from app.extension import db
 from app.models.post import Post
 from app.service.base_service import BaseService
-from app.shared.commons import field_error
+from app.shared.commons import field_error, response_valid_request
 from app.utils.csv import CSV
 from app.utils.request import clean_filters, request_query
 from config.logging import logger
@@ -21,11 +21,9 @@ class PostService(BaseService):
     def create_post(payload):
         """Create post."""
         user_id = get_jwt_identity()
-        post = PostDao.get_by_title(payload.title)
-        if post:
-            field_error("title", "The Title is  already taken.", 400)
-        if not payload.is_valid_request:
-            return {"is_valid_request": True}
+        invalid_response = PostService.check_create_update_invalid_request(payload)
+        if invalid_response:
+            return invalid_response
         post = Post(
             title=payload.title,
             description=payload.description,
@@ -33,8 +31,8 @@ class PostService(BaseService):
             create_user_id=user_id,
             updated_user_id=user_id,
         )
-
         post = PostDao.create(post)
+
         return {"post": post}
 
     def get_post(post_id: int):
@@ -48,18 +46,16 @@ class PostService(BaseService):
     def update_post(payload, id):
         """Update Post data"""
         user_id = get_jwt_identity()
-        post = PostDao.get_post(id)
-        if not post:
-            field_error("post", "Post not found.", 404)
-        existing_post = PostDao.get_by_title(payload.title, id)
-        if existing_post:
-            field_error("title", "The Title is  already exists.", 400)
+        invalid_response = PostService.check_create_update_invalid_request(payload, id)
+        if invalid_response:
+            return invalid_response
+        post = PostDao.find_one(id=id)
         post.title = payload.title
         post.description = payload.description
         post.status = payload.status
         post.updated_user_id = user_id
 
-        return post
+        return {"post": post}
 
     def delete_posts(payload):
         """Delete posts by IDs."""
@@ -93,3 +89,11 @@ class PostService(BaseService):
         stream_posts = CSV.post_csv_generator(posts)
 
         return stream_posts
+
+    def check_create_update_invalid_request(payload, id=None):
+        post = PostDao.get_by_title(payload.title, id)
+        if post:
+            field_error("title", "The Title is  already taken.", 400)
+        if not payload.is_valid_request:
+            print("false", payload.is_valid_request)
+            return response_valid_request()

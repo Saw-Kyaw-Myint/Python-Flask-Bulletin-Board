@@ -10,7 +10,12 @@ from app.extension import db
 from app.request.post_request import CreatePostRequest, UpdatePostRequest
 from app.schema.post_schema import PostSchema
 from app.service.post_service import PostService
-from app.shared.commons import paginate_response, raise_error, validate_request
+from app.shared.commons import (
+    paginate_response,
+    raise_error,
+    response_valid_request,
+    validate_request,
+)
 from app.task.import_posts import import_posts_from_csv
 from app.utils.log import log_handler
 from app.utils.request import request_query
@@ -62,8 +67,13 @@ def update_post(payload, id):
     """Update post"""
     try:
         post = PostService.update_post(payload, id)
+        if post.get("is_valid_request", False):
+            return jsonify(response_valid_request()), 202
         db.session.commit()
-        return jsonify({"msg": f"{(post.id)} Post update successfully"}), 200
+        return (
+            jsonify({"msg": f"{(post.get('post').id)} Post update successfully"}),
+            200,
+        )
     except HTTPException as e:
         db.session.rollback()
         return e

@@ -19,6 +19,7 @@ class UpdatePostRequest(BaseModel):
     title: str = Field(..., max_length=255)
     description: str
     status: int
+    is_valid_request: bool = False
 
     @classmethod
     def messages(cls):
