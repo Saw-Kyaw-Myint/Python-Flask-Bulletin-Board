@@ -34,6 +34,7 @@ class UserCreateRequest(BaseModel):
     address: NonEmptyStr
     dob: Optional[date | str] = None
     profile: Any = None
+    is_valid_request: bool = None
 
     @field_validator("profile")
     def file_required(cls, v):
@@ -91,6 +92,7 @@ class UserUpdateRequest(BaseModel):
     dob: Optional[date] = None
     profile: Any = None
     address: NonEmptyStr
+    is_valid_request: bool = None
 
     @field_validator("profile")
     def file_required(cls, v):

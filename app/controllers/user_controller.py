@@ -16,6 +16,7 @@ from app.shared.commons import (
     MAX_FILE_SIZE,
     field_error,
     paginate_response,
+    response_valid_request,
     validate_request,
 )
 from app.utils.log import log_handler
@@ -63,11 +64,14 @@ def create_user(payload):
     payload_dict["profile"] = opt_file["file_url"]
 
     try:
-        UserService.create(payload_dict)
+        user = UserService.create(payload_dict)
+        if user.get("is_valid_request", False):
+            return jsonify(response_valid_request()), 202
         file.save(opt_file["storage_path"])
         db.session.commit()
         return jsonify({"msg": "User is created successfully."}), 200
     except HTTPException as e:
+        print(e)
         db.session.rollback()
         return e
     except Exception as e:
@@ -96,10 +100,12 @@ def update_user(payload, id):
 
     try:
         user = UserService.update(payload_dict, id)
+        if user.get("is_valid_request", False):
+            return jsonify(response_valid_request()), 202
         if file:
             file.save(file_path)
         db.session.commit()
-        user = auth_schema.dump(user)
+        user = auth_schema.dump(user.get("user", {}))
         return jsonify({"msg": "Update is success", "user": user}), 200
     except HTTPException as e:
         db.session.rollback()

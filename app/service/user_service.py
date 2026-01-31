@@ -3,7 +3,7 @@ from flask_jwt_extended import get_jwt_identity
 from app.dao.user_dao import UserDao
 from app.models import User
 from app.service.base_service import BaseService
-from app.shared.commons import field_error
+from app.shared.commons import field_error, response_valid_request
 from app.utils.hash import hash_password
 from config.logging import logger
 
@@ -37,6 +37,9 @@ class UserService(BaseService):
         if UserDao.find_one(email=payload["email"]):
             field_error("email", "Email already exists", 400)
 
+        if not payload["is_valid_request"]:
+            return response_valid_request()
+
         user = User(
             name=payload["name"],
             email=payload["email"],
@@ -48,8 +51,9 @@ class UserService(BaseService):
             profile_path=payload["profile"],
             create_user_id=payload["user_id"],
         )
+        user = UserDao.create(user)
 
-        return UserDao.create(user)
+        return {"user": user}
 
     def update(payload, id):
         """
@@ -67,6 +71,9 @@ class UserService(BaseService):
         if UserDao.find_one(email=payload["email"]) and exist_email.email != user.email:
             field_error("email", "Email already exists", 400)
 
+        if not payload["is_valid_request"]:
+            return response_valid_request()
+
         user.name = payload["name"]
         user.email = payload["email"]
         user.role = payload["role"]
@@ -80,7 +87,8 @@ class UserService(BaseService):
 
         if payload.get("profile"):
             user.profile_path = payload["profile"]
-        return user
+
+        return {"user": user}
 
     def delete_users(payload):
         """

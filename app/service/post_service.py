@@ -95,5 +95,4 @@ class PostService(BaseService):
         if post:
             field_error("title", "The Title is  already taken.", 400)
         if not payload.is_valid_request:
-            print("false", payload.is_valid_request)
             return response_valid_request()
