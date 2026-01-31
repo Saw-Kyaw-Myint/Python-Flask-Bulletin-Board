@@ -10,6 +10,7 @@ from app.extension import db
 from app.request.user_request import UserCreateRequest, UserUpdateRequest
 from app.schema.auth_schema import AuthSchema
 from app.schema.user_list_schema import UserListSchema
+from app.request.reset_password_request import RestPasswordRequest
 from app.schema.user_schema import UserSchema
 from app.service.user_service import UserService
 from app.shared.commons import (
@@ -170,6 +171,21 @@ def unlock_users():
         log_handler("error", "User Controller : unlock_users =>", e)
         db.session.rollback()
         return jsonify({"msg": str(e)}), 500
+
+@validate_request(RestPasswordRequest)
+def change_password(payload,id):
+    try:
+        UserService.change_password(payload,id)
+        db.session.commit()
+        return jsonify({"msg": "Password Change  has been  successfully"}), 200
+    except HTTPException as e:
+        db.session.rollback()
+        return e
+    except Exception as e:
+        db.session.rollback()
+        log_handler("error", "Auth Controller : reset password =>", e)
+        return jsonify({"msg": str(e)}), 500
+     
 
 
 def optimize_file(file, user_id: str, sub_dir: str = "profile"):

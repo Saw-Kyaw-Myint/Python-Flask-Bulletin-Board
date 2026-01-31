@@ -1,12 +1,13 @@
 import re
 
 from pydantic import BaseModel, field_validator
+from typing import Optional
 
 
 class RestPasswordRequest(BaseModel):
     password: str
     confirm_password: str
-    token: str
+    token: Optional[str] = None
 
     @field_validator("password")
     @classmethod

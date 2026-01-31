@@ -25,6 +25,7 @@ from app.controllers.user_controller import (
     show_user,
     unlock_users,
     update_user,
+    change_password
 )
 
 # from app.extension import limiter
@@ -59,6 +60,7 @@ user_bp.post("/update/<int:id>")(update_user)
 user_bp.post("/multiple-delete")(delete_users)
 user_bp.post("/lock")(lock_users)
 user_bp.post("/unlock")(unlock_users)
+user_bp.post('/change-password/<int:id>') (change_password)
 
 # Post Route
 before_middleware(post_bp, post_middleware)
