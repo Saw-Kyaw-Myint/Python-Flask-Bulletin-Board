@@ -6,6 +6,7 @@ from app.controllers.auth_controller import (
     logout,
     refresh,
     reset_password,
+    register
 )
 from app.controllers.post_controller import (
     create_post,
@@ -45,6 +46,7 @@ post_bp = Blueprint("post", __name__, url_prefix="/api/posts")
 
 
 # Auth Route
+auth_bp.post("/register")(register)
 auth_bp.post("/login")(login_user)
 auth_bp.post("/refresh")(refresh)
 auth_bp.post("/forgot-password")(forgot_password)

@@ -8,9 +8,26 @@ from app.dao.user_dao import UserDao
 from app.service.base_service import BaseService
 from app.shared.commons import field_error
 from app.utils.hash import hash_password
-
+from app.models.user import User
 
 class AuthService(BaseService):
+    def register(payload):
+        """Register"""
+        if UserDao.find_one(name=payload.name):
+            field_error("name", "Name already exists", 400)
+
+        if UserDao.find_one(email=payload.email):
+            field_error("email", "Email already exists", 400)
+
+        user = User(
+            name=payload.name,
+            email=payload.email,
+            password=hash_password(payload.password),
+        )
+        user = UserDao.create(user)
+
+        return {"user": user}
+
     def login(payload):
         """Login and update last_login_at"""
         user = UserDao.is_valid_user(payload.email)

@@ -19,6 +19,7 @@ from app.request.reset_password_request import RestPasswordRequest
 from app.schema.auth_schema import AuthSchema
 from app.service.auth_service import AuthService
 from app.service.user_service import UserService
+from app.request.register_request import RegisterRequest
 from app.shared.commons import FRONTEND_URL, validate_request
 from app.utils.log import log_handler
 from app.utils.token import (
@@ -31,6 +32,19 @@ from config.logging import logger
 
 auth_schema = AuthSchema()
 
+@validate_request(RegisterRequest)
+def register(payload):
+    try:
+        user = AuthService.register(payload)
+        db.session.commit()
+        return jsonify({"msg": "Register is created successfully."}), 200
+    except HTTPException as e:
+        db.session.rollback()
+        return e
+    except Exception as e:
+        db.session.rollback()
+        log_handler("error", "User Controller : create_user =>", e)
+        return jsonify({"msg": str(e)}), 500
 
 @validate_request(LoginRequest)
 def login_user(payload):
