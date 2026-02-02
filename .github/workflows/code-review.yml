@@ -3,7 +3,10 @@ name: Gemini AI PR Review
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
 jobs:
   ai_review:
     runs-on: ubuntu-latest
