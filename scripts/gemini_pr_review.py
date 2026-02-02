@@ -81,24 +81,18 @@ Provide your review in **GitHub diff style Markdown**:
 Code Diffs:
 {diffs}
 """
-
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
                 "temperature": 0.1,
                 "maxOutputTokens": 2048,
-                "thinking_config": { "thinking_level": "minimal" }
             },
         }
-
-        # Longer timeout for AI generation
-        response = requests.post(url, headers=headers, json=payload, timeout=(10, 120))
-        response.raise_for_status()
-        
-        result = response.json()
-
-        # Safe parsing
+    
         try:
+            response = requests.post(url, headers=headers, json=payload, timeout=(10, 120))
+            response.raise_for_status()
+            result = response.json()
             review_text = result['candidates'][0]['content']['parts'][0]['text']
         except (KeyError, IndexError):
             reason = result.get("candidates", [{}])[0].get("finishReason", "UNKNOWN")
