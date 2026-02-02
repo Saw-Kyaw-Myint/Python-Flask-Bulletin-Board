@@ -1,7 +1,7 @@
 import os
 
 import requests
-from github import Github
+from github import Github,Auth
 
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
@@ -9,7 +9,7 @@ PR_NUMBER = int(os.environ["PR_NUMBER"])
 REPO_NAME = os.environ["REPO"]
 
 # Get changed files in PR
-g = Github(GITHUB_TOKEN)
+g = Github(auth=Auth.Token(GITHUB_TOKEN))
 repo = g.get_repo(REPO_NAME)
 pr = repo.get_pull(PR_NUMBER)
 files = pr.get_files()
@@ -55,6 +55,7 @@ response = requests.post(
     },
 )
 
+print('Ai-response ==>', response.json())
 review_text = response.json()["choices"][0]["message"]["content"]
 
 # Post review comments on GitHub PR
