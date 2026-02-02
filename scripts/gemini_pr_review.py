@@ -43,9 +43,8 @@ def main():
             if not file.filename.endswith(".py") or not file.patch:
                 continue
 
-            # Context Check: If the file change is small, send the full patch.
-            # Large files get trimmed to save tokens and prevent timeouts.
             patch_lines = file.patch.splitlines()
+            # Use trimmed diff for large files
             if len(patch_lines) < 20:
                 content_to_review = file.patch
             else:
@@ -59,7 +58,6 @@ def main():
             return
 
         # ========== 4. GEMINI API (2026 STABLE) ==========
-        # gemini-1.5-flash is retired. gemini-3-flash-preview is the 2026 standard.
         MODEL_NAME = "gemini-3-flash-preview"
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent"
 
@@ -68,10 +66,17 @@ def main():
             "x-goog-api-key": GEMINI_API_KEY,
         }
 
-        prompt = f"""You are a Senior Python/Flask Developer. 
-Review the following code changes for bugs, security vulnerabilities (like SQL injection or hardcoded secrets), and Flask best practices.
+        print('diffs => ', diffs)
 
-Review only the provided diffs. Be concise.
+        # Markdown diff style prompt
+        prompt = f"""You are a Senior Python/Flask Developer.
+Review the following code changes for bugs, security issues, and best practices.
+
+Provide your review in **GitHub diff style Markdown**:
+- Show removed lines with '-'
+- Show added lines with '+'
+- Add a short inline explanation if needed
+- Do not write long paragraphs, focus only on problematic lines
 
 Code Diffs:
 {diffs}
@@ -82,26 +87,25 @@ Code Diffs:
             "generationConfig": {
                 "temperature": 0.1,
                 "maxOutputTokens": 2048,
-                # 'minimal' thinking ensures fast response and prevents timeouts
-                "thinking_config": { "thinking_level": "minimal" } 
+                "thinking_config": { "thinking_level": "minimal" }
             },
         }
 
-        # Use a longer timeout for AI generation (10s connect, 120s read)
+        # Longer timeout for AI generation
         response = requests.post(url, headers=headers, json=payload, timeout=(10, 120))
         response.raise_for_status()
         
         result = response.json()
 
-        # Safer parsing for 2026 API structure
+        # Safe parsing
         try:
             review_text = result['candidates'][0]['content']['parts'][0]['text']
         except (KeyError, IndexError):
             reason = result.get("candidates", [{}])[0].get("finishReason", "UNKNOWN")
             raise RuntimeError(f"API Error: Model did not return text. Reason: {reason}")
 
-        # ========== 5. POST COMMENT ==========
-        comment_body = f"## 🤖 Gemini 3 AI Review\n\n{review_text}"
+        # ========== 5. POST COMMENT IN MARKDOWN DIFF ==========
+        comment_body = f"## 🤖 Gemini 3 AI Review (Code Suggestions)\n\n```diff\n{review_text}\n```"
         pr.create_issue_comment(comment_body)
 
         print(f"✅ Review posted successfully using {MODEL_NAME}")
