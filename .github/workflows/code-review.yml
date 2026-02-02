@@ -1,0 +1,36 @@
+name: AI PR Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  ai_review:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout code
+      - uses: actions/checkout@v3
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      # Install Poetry and dependencies
+      - name: Install Poetry and dependencies
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          export PATH="$HOME/.local/bin:$PATH"
+          poetry install
+
+      # Run AI Review script
+      - name: Run AI PR Review
+        env:
+          OPENAI_API_KEY: ${{ secrets.PYTHON_OJT777405 }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          poetry run python scripts/ai_pr_review.py
