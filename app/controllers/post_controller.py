@@ -56,11 +56,34 @@ def create_post(payload):
         return jsonify({"msg": str(e)}), 500
 
 
-def show_post(post_id):
-    """Get User by user id"""
-    post = PostService.get_post(post_id)
-    return jsonify(post_schema.dump(post)), 200
+def ai_review(content: str) -> dict:
+    """
+    Perform an AI review on the content.
+    This is a dummy example. Replace with actual AI API call.
+    """
+    # Here you could call OpenAI GPT API or any AI model
+    review_result = {
+        "content": content,
+        "review_score": 8,  # example score out of 10
+        "comments": ["Good structure", "Consider shortening some paragraphs"]
+    }
+    return review_result
 
+def show_post(post_id):
+    """Get Post by ID and perform AI review"""
+    post = PostService.get_post(post_id)
+    if not post:
+        return jsonify({"error": "Post not found"}), 404
+
+    post_data = post_schema.dump(post)
+    
+    # Run AI review on the post content
+    ai_result = ai_review(post_data.get("content", ""))
+
+    return jsonify({
+        "post": post_data,
+        "ai_review": ai_result
+    }), 200
 
 @validate_request(UpdatePostRequest)
 def update_post(payload, id):
