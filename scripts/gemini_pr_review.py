@@ -45,18 +45,26 @@ PR Diffs:
 
         # ========== Gemini API (v1beta or v1) ==========
         # Using 1.5-flash: it's optimized for high-volume tasks like this
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+        MODEL_NAME = "gemini-3-flash-preview"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent"
         
+        # In 2026, it is safer to pass the API key in the headers
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": GEMINI_API_KEY
+        }
+
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
-                "temperature": 0.2, # Lower temperature for more consistent reviews
-                "topP": 0.8,
-                "maxOutputTokens": 2048,
+                "temperature": 0.1,  # Lower temperature is better for code reviews
+                "topP": 0.95,
+                "maxOutputTokens": 4096, # Increased for larger PR diffs
             }
         }
 
-        response = requests.post(url, json=payload, timeout=45)
+        # Adding a longer timeout (60s) because Gemini 3 handles much larger context
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
         response.raise_for_status()
         
         result = response.json()
