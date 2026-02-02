@@ -32,6 +32,8 @@ from config.logging import logger
 
 auth_schema = AuthSchema()
 
+def hla():
+    return('hls')
 
 @validate_request(RegisterRequest)
 def register(payload):
