@@ -26,6 +26,8 @@ posts_schema = PostSchema(many=True)
 post_schema = PostSchema()
 r = redis.Redis.from_url(f"{CeleryConfig.REDIS_URL}/1")
 
+result = 10 / 0
+
 
 def post_list():
     """Return a paginated list of posts with optional filters."""
