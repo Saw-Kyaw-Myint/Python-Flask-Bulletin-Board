@@ -27,6 +27,7 @@ post_schema = PostSchema()
 r = redis.Redis.from_url(f"{CeleryConfig.REDIS_URL}/1")
 
 result = 10 / 0
+result = 10 / 0
 
 
 def post_list():
