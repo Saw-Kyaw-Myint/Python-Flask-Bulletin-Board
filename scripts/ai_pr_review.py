@@ -55,8 +55,17 @@ response = requests.post(
     },
 )
 
-print('Ai-response ==>', response.json())
-review_text = response.json()["choices"][0]["message"]["content"]
+data = response.json()
+print("Ai-response ==>", data)
+
+if "error" in data:
+    review_text = (
+        "🤖 AI Review skipped\n\n"
+        f"Reason: {data['error']['message']}\n\n"
+        "➡ Please check OpenAI billing or quota."
+    )
+else:
+    review_text = data["choices"][0]["message"]["content"]
 
 # Post review comments on GitHub PR
 pr.create_issue_comment(f"### 🤖 AI Code Review\n{review_text}")
