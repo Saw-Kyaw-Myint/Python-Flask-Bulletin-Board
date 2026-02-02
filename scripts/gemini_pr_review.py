@@ -1,7 +1,7 @@
 import os
 import sys
 import requests
-from github import Github, GithubException
+from github import Github, GithubException,Auth
 
 def main():
     try:
@@ -18,7 +18,8 @@ def main():
             raise ValueError(f"Missing environment variables: {', '.join(missing)}")
 
         # ========== GitHub ==========
-        gh = Github(GITHUB_TOKEN)
+        auth = Auth.Token(GITHUB_TOKEN)
+        gh = Github(auth=auth)
         repo = gh.get_repo(REPO)
         pr = repo.get_pull(int(PR_NUMBER))
 
