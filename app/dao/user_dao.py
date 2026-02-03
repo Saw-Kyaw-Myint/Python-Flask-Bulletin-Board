@@ -2,7 +2,7 @@ from datetime import datetime
 from itertools import batched
 
 from flask_jwt_extended import get_jwt_identity
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload
 
 from app.dao.base_dao import BaseDao
@@ -10,6 +10,7 @@ from app.extension import db
 from app.models import User
 from app.models.scopes import UserScopes
 from app.shared.commons import BATCH_SIZE
+from app.utils.request import clean_filters
 from config.logging import logger
 
 
@@ -66,16 +67,41 @@ class UserDao(BaseDao):
                 deleted_count += 1
         return deleted_count
 
-    def delete_all_users(exclude_ids: list[int]):
+    def delete_all_users(exclude_ids: list[int], filters):
         """Delete all user or all except exclude_ids."""
-        query = User.query.filter(User.deleted_at.is_(None))
+        user_id = get_jwt_identity()
+        query = User.query.filter(User.deleted_at.is_(None), User.id != user_id)
         if exclude_ids:
             query = query.filter(~User.id.in_(exclude_ids))
+        if filters:
+            filters = clean_filters(filters)
+            query = UserDao.filters_query(query, filters, True, False)
         deleted_count = query.update(
             {"deleted_at": datetime.utcnow()}, synchronize_session=False
         )
         db.session.flush()
         return deleted_count
+
+    def lock_all_users(exclude_ids: list[int], filters):
+        """Lock all users or all except exclude_ids."""
+        user_id = get_jwt_identity()
+        query = User.query.filter(User.deleted_at.is_(None), User.id != user_id)
+        if exclude_ids:
+            query = query.filter(~User.id.in_(exclude_ids))
+        if filters:
+            filters = clean_filters(filters)
+            query = UserDao.filters_query(query, filters, True, False)
+        lock_count = query.update(
+            {
+                User.lock_flg: True,
+                User.lock_count: func.coalesce(User.lock_count, 0) + 1,
+                User.last_lock_at: datetime.utcnow(),
+            },
+            synchronize_session=False,
+        )
+
+        db.session.flush()
+        return lock_count
 
     def lock_users(user_ids: list[int]):
         """Lock multiple users by updating lock_flg, lock_count, last_lock_at"""
@@ -88,6 +114,25 @@ class UserDao(BaseDao):
             user.last_lock_at = datetime.utcnow()
         return users
 
+    def unlock_all_users(exclude_ids: list[int], filters):
+        """Lock all users or all except exclude_ids."""
+        query = User.query.filter(User.deleted_at.is_(None))
+        if exclude_ids:
+            query = query.filter(~User.id.in_(exclude_ids))
+        if filters:
+            filters = clean_filters(filters)
+            query = UserDao.filters_query(query, filters, True, False)
+        lock_count = query.update(
+            {
+                User.lock_flg: False,
+                User.last_lock_at: datetime.utcnow(),
+            },
+            synchronize_session=False,
+        )
+
+        db.session.flush()
+        return lock_count
+
     def unlock_users(user_ids: list[int]):
         """UnLock multiple users by updating lock_flg, last_lock_at"""
         users = User.query.filter(
@@ -97,3 +142,14 @@ class UserDao(BaseDao):
             user.lock_flg = False
             user.last_lock_at = None
         return users
+
+    def filters_query(query, filters, active=True, latest=True, current_user_id=None):
+        """Filter Query"""
+        if active:
+            query = UserScopes.active(query, exclude_user_id=current_user_id)
+        query = UserScopes.filter_name_email(query, filters)
+        query = UserScopes.filter_role(query, filters)
+        query = UserScopes.filter_date(query, filters)
+        if latest:
+            query = UserScopes.latest(query)
+        return query

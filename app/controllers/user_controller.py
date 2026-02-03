@@ -137,14 +137,13 @@ def delete_users():
 
 def lock_users():
     """Lock users"""
-    data = request.get_json(silent=True) or {}
-    user_ids = data.get("user_ids")
-    if not isinstance(user_ids, list) or not user_ids:
-        return jsonify({"msg": "Provide a list of user IDs"}), 400
+    payload = request.get_json(silent=True)
+    if not payload:
+        return jsonify({"msg": "empty data"}), 400
     try:
-        users = UserService.lock_users(user_ids)
+        users = UserService.lock_users(payload)
         db.session.commit()
-        return jsonify({"msg": f"{len(users)} users locked successfully"}), 200
+        return jsonify({"msg": f"{users} users locked successfully"}), 200
     except ValueError as e:
         db.session.rollback()
         raise e
@@ -156,14 +155,13 @@ def lock_users():
 
 def unlock_users():
     """Unlock users"""
-    data = request.get_json(silent=True) or {}
-    user_ids = data.get("user_ids")
-    if not isinstance(user_ids, list) or not user_ids:
-        return jsonify({"msg": "Provide a list of user IDs"}), 400
+    payload = request.get_json(silent=True)
+    if not payload:
+        return jsonify({"msg": "empty data"}), 400
     try:
-        users = UserService.unlock_users(user_ids)
+        users = UserService.unlock_users(payload)
         db.session.commit()
-        return jsonify({"msg": f"{len(users)} users unlocked successfully"}), 200
+        return jsonify({"msg": f"{users} users unlocked successfully"}), 200
     except ValueError as e:
         db.session.rollback()
         raise e

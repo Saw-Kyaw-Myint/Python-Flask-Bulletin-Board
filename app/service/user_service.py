@@ -98,30 +98,45 @@ class UserService(BaseService):
         user_ids = payload.get("user_ids", [])
         exclude_ids = payload.get("exclude_ids", [])
         if select_all:
-            user_count = UserDao.delete_all_users(exclude_ids)
+            filters = payload.get("filters", {})
+            user_count = UserDao.delete_all_users(exclude_ids, filters)
         else:
             if not isinstance(user_ids, list) or not user_ids:
                 raise ValueError("Provide user ids list.")
             user_count = UserDao.delete_users(user_ids)
         return user_count
 
-    def lock_users(users_ids):
+    def lock_users(payload):
         """
         Lock User
         """
-        users = UserDao.lock_users(users_ids)
-        if not users:
-            raise ValueError("not user found")
-        return users
+        select_all = payload.get("all", False)
+        user_ids = payload.get("user_ids", [])
+        exclude_ids = payload.get("exclude_ids", [])
+        if select_all:
+            filters = payload.get("filters", {})
+            user_count = UserDao.lock_all_users(exclude_ids, filters)
+        else:
+            if not isinstance(user_ids, list) or not user_ids:
+                raise ValueError("Provide user ids list.")
+            user_count = UserDao.lock_users(user_ids)
+        return user_count
 
-    def unlock_users(users_ids):
+    def unlock_users(payload):
         """
         UnLock User
         """
-        users = UserDao.unlock_users(users_ids)
-        if not users:
-            raise ValueError("not user found")
-        return users
+        select_all = payload.get("all", False)
+        user_ids = payload.get("user_ids", [])
+        exclude_ids = payload.get("exclude_ids", [])
+        if select_all:
+            filters = payload.get("filters", {})
+            user_count = UserDao.unlock_all_users(exclude_ids, filters)
+        else:
+            if not isinstance(user_ids, list) or not user_ids:
+                raise ValueError("Provide user ids list.")
+            user_count = UserDao.unlock_users(user_ids)
+        return user_count
 
     def change_password(payload, id):
         user = UserDao.find_one(id=id)

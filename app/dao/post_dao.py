@@ -60,7 +60,7 @@ class PostDao(BaseDao):
             query = query.filter(~Post.id.in_(exclude_ids))
         if filters:
             filters = clean_filters(filters)
-            query = PostDao.filters_query(query, filters, False)
+            query = PostDao.filters_query(query, filters, True, False)
         deleted_count = query.update(
             {"deleted_at": datetime.utcnow()}, synchronize_session=False
         )
