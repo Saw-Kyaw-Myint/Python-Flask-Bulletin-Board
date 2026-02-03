@@ -1,6 +1,7 @@
 import os
+
 import requests
-from github import Github, Auth
+from github import Auth, Github
 
 DEEPSEEK_API_KEY = os.environ["DEEPSEEK_API_KEY"]
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
@@ -19,9 +20,7 @@ for f in pr.get_files():
         code_snippets += f"\nFile: {f.filename}\n{f.patch or ''}\n"
 
 if not code_snippets:
-    pr.create_issue_comment(
-        "### 🤖 DeepSeek AI Review\nNo Python changes detected."
-    )
+    pr.create_issue_comment("### 🤖 DeepSeek AI Review\nNo Python changes detected.")
     exit(0)
 
 prompt = f"""
@@ -48,9 +47,7 @@ response = requests.post(
     },
     json={
         "model": "deepseek-chat",  # or deepseek-coder
-        "messages": [
-            {"role": "user", "content": prompt}
-        ],
+        "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.2,
         "max_tokens": 300,
     },

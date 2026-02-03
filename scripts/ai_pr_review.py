@@ -1,7 +1,7 @@
 import os
 
 import requests
-from github import Github,Auth
+from github import Auth, Github
 
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
@@ -55,7 +55,7 @@ response = requests.post(
     },
 )
 
-print('Ai-response ==>', response.json())
+print("Ai-response ==>", response.json())
 review_text = response.json()["choices"][0]["message"]["content"]
 
 # Post review comments on GitHub PR
