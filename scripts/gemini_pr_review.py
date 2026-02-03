@@ -2,19 +2,42 @@ import os
 import sys
 import requests
 from github import Github, Auth
+import re
+from typing import List, Dict
 from github.GithubException import GithubException
 
-def extract_changed_lines(patch: str) -> str:
+def extract_changed_lines_with_numbers(patch: str) -> List[Dict]:
     """
-    Extract only added (+) and removed (-) lines from a unified diff.
+    Extract added lines (+) with their NEW file line numbers.
     """
-    lines = []
+    results = []
+
+    new_line_no = None
+
     for line in patch.splitlines():
-        if line.startswith(("+++", "---", "@@")):
+        # HUNK HEADER: @@ -a,b +c,d @@
+        hunk = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)", line)
+        if hunk:
+            new_line_no = int(hunk.group(1))
             continue
-        if line.startswith("+"):
-            lines.append(line)
-    return "\n".join(lines)
+
+        if line.startswith("+") and not line.startswith("+++"):
+            results.append({
+                "line": new_line_no,
+                "code": line[1:]
+            })
+            new_line_no += 1
+
+        elif line.startswith("-") and not line.startswith("---"):
+            # removed line → does NOT increase new_line_no
+            continue
+
+        else:
+            # context line
+            if new_line_no is not None:
+                new_line_no += 1
+
+    return results
 
 def main():
     try:
@@ -37,21 +60,23 @@ def main():
 
         # ========== 3. COLLECT DIFFS ==========
         diffs = ""
-        total_changed_lines = 0
 
         for file in pr.get_files():
             if not file.filename.endswith(".py") or not file.patch:
                 continue
 
-            patch_lines = file.patch.splitlines()
-            # Use trimmed diff for large files
-            if len(patch_lines) < 20:
-                content_to_review = file.patch
-            else:
-                content_to_review = extract_changed_lines(file.patch)
+            changed_lines = extract_changed_lines_with_numbers(file.patch)
 
-            diffs += f"\n--- File: {file.filename} ---\n{content_to_review}\n"
-            total_changed_lines += len(patch_lines)
+            if not changed_lines:
+                continue
+
+            diffs += f"\n{file.filename}\n"
+            diffs += "```diff\n"
+
+            for item in changed_lines:
+                diffs += f"+ L{item['line']}: {item['code']}\n"
+
+            diffs += "```\n"
 
         if not diffs:
             print("No Python changes found.")
@@ -82,14 +107,14 @@ OUTPUT FORMAT (STRICT):
 - If multiple files are present, repeat the format below per file
 - File name must be shown as plain text on its own line
 - Then show ONE diff block
-- Then ONE **BOLD** explanation (1–2 sentences max)
+- Then ONE **BOLD** explanation (1–3 sentences max)
 
 VALID OUTPUT STRUCTURE:
 
 filename.py
 ```diff
-- old line
-+ new line
+-L23: existing line
++ suggestion line
 Short explanation of the problem and fix. (Note => Bold this Line)
 
 DO NOT add anything else.
