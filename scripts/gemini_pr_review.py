@@ -109,12 +109,16 @@ OUTPUT FORMAT (STRICT):
 - Then show ONE diff block
 - Then ONE **BOLD** explanation (1–3 sentences max)
 
+
+You MUST follow the output format exactly.
+Do NOT add extra text, headings, or explanations outside this structure.
+
 VALID OUTPUT STRUCTURE:
 
 filename.py (Note => Bold and underline to this Line)
 ```diff
 -L23: existing line
-
+(space line)
 + suggestion line
 Short explanation of the problem and fix. (Note => Bold this Line)
 
