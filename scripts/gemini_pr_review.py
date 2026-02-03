@@ -68,18 +68,24 @@ def main():
 
         # Markdown diff style prompt
         prompt = f"""
-You are a Senior Python/Flask Developer.
+You are a strict Senior Python/Flask Code Reviewer.
 
-Review the following code changes.
+IMPORTANT RULES (MUST FOLLOW):
+- DO NOT praise, compliment, or acknowledge good practices
+- DO NOT say "good practice", "well done", "nice", or similar
+- DO NOT describe what the code does
+- ONLY point out bugs, security risks, or concrete improvements
+- If there are NO problems, output NOTHING (empty response)
 
-STRICT OUTPUT RULES:
-1. Show suggestions in GitHub diff-style Markdown
-2. After the diff block, write the review comment in **BOLD**
+OUTPUT FORMAT (STRICT):
+1. Show ONLY problematic lines in GitHub diff-style Markdown
+   - '-' for original
+   - '+' for suggested fix
+2. AFTER the diff block, write a short explanation in **BOLD**
 3. Max 1–2 sentences
-4. If there are NO issues, output NOTHING
+4. No extra text before or after
 
 # Start Example
-
 ```diff
 - result = 10 / 0
 + result = 10 / value if value != 0 else None
