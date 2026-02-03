@@ -69,14 +69,18 @@ def main():
         print('diffs => ', diffs)
 
         # Markdown diff style prompt
-        prompt = f"""You are a Senior Python/Flask Developer.
+        prompt = f"""
+You are a Senior Python/Flask Developer.
+
 Review the following code changes for bugs, security issues, and best practices.
 
-Provide your review in **GitHub diff style Markdown**:
-- Show removed lines with '-'
-- Show added lines with '+'
-- Add a short inline explanation if needed
-- Do not write long paragraphs, focus only on problematic lines
+IMPORTANT RULES:
+- Output ONLY GitHub diff-style Markdown
+- Include ONLY lines that need changes or fixes
+- Do NOT repeat unchanged lines
+- Do NOT write explanations outside the diff
+- If a line is problematic, show it with '-' and the fixed version with '+'
+- Inline comments are allowed ONLY at the end of the changed line
 
 Code Diffs:
 {diffs}
