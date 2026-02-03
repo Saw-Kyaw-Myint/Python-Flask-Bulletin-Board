@@ -68,31 +68,41 @@ def main():
 
         # Markdown diff style prompt
         prompt = f"""
-You are a strict Senior Python/Flask Code Reviewer.
+You are a STRICT Senior Python/Flask Code Reviewer.
 
-IMPORTANT RULES (MUST FOLLOW):
-- DO NOT praise or compliment
-- DO NOT say "good practice", "well done", "nice", or similar
+MANDATORY RULES (DO NOT VIOLATE):
+- DO NOT include diff metadata such as --- , +++ , @@
+- DO NOT praise, compliment, or mention good practices
 - DO NOT describe what the code does
-- ONLY point out bugs, security risks, good practices or concrete improvements
+- ONLY point out bugs, security issues, or concrete improvements
 - If there are NO problems, output NOTHING (empty response)
 
 OUTPUT FORMAT (STRICT):
-1. Show ONLY problematic lines diff-style Markdown without any unnecessary line
-   - '-' for original
-   - '+' for suggested fix
-2. AFTER the diff block, write a  following short explanation
+1. Output ONLY a GitHub diff-style Markdown block with changed lines
+   - Use '-' for original lines
+   - Use '+' for suggested fixes
+2. Immediately AFTER the diff block, write the explanation in **BOLD**
 3. Max 1–2 sentences
 4. No extra text before or after
 
-# Example result
+EXAMPLE OUTPUT (VALID):
+
 ```diff
 - result = 10 / 0
 + result = 10 / value if value != 0 else None
-This prevents a ZeroDivisionError and avoids crashing the application.(note => must bold)
-# End Example
+This prevents a ZeroDivisionError and avoids crashing the application.
 
-CODE CHANGES:
+INVALID OUTPUT EXAMPLES (DO NOT DO):
+
+"This is good practice"
+
+"The code looks fine"
+
+Any text without a diff
+
+Any diff containing --- , +++ , @@
+
+CODE CHANGES TO REVIEW:
 {diffs}
 """
         payload = {"contents": [{"parts": [{"text": prompt}]}]}
