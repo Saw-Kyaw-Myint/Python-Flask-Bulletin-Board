@@ -108,7 +108,7 @@ OUTPUT FORMAT (STRICT):
 - File name must be shown as plain text on its own line
 - Then show ONE diff block
 - Then ONE **BOLD** explanation (1–3 sentences max)
-- Enter 'existing line'  code block and 'suggestion line' code block
+- Enter 'existing line'  code block and 'suggestion line' code block each file
 - Bold and underline to File Name
 
 
@@ -117,10 +117,10 @@ Do NOT add extra text, headings, or explanations outside this structure.
 
 VALID OUTPUT STRUCTURE:
 
-filename.py (Note => Bold and underline to this Line)
+<a>filename.py</a> (Note => Bold and underline to this Line)
 ```diff
 -L23: existing line
-
+\n
 + suggestion line
 Short explanation of the problem and fix. (Note => Bold this Line)
 
