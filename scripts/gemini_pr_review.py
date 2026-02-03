@@ -109,6 +109,8 @@ CODE CHANGES:
 
     except Exception as e:
         print(f"❌ Error: {str(e)}", file=sys.stderr)
+        if "response" in locals():
+            print(f"Response Body: {response.text}")
         sys.exit(1)
 
 if __name__ == "__main__":
