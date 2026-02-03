@@ -58,7 +58,7 @@ def main():
             return
 
         # ========== 4. GEMINI API (2026 STABLE) ==========
-        MODEL_NAME = "gemini-2.5-flash"
+        MODEL_NAME = "gemini-2.5-flash-lite"
         URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent"
 
         headers = {
