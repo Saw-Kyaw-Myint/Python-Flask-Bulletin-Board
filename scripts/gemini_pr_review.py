@@ -78,10 +78,10 @@ IMPORTANT RULES (MUST FOLLOW):
 - If there are NO problems, output NOTHING (empty response)
 
 OUTPUT FORMAT (STRICT):
-1. Show ONLY problematic lines in GitHub diff-style Markdown
+1. Show ONLY problematic lines in GitHub diff-style Markdown without any unnecessary line
    - '-' for original
    - '+' for suggested fix
-2. AFTER the diff block, write a short explanation in **BOLD**
+2. AFTER the diff block, write a short explanation  with following example
 3. Max 1–2 sentences
 4. No extra text before or after
 
