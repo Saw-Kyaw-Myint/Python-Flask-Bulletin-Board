@@ -12,7 +12,7 @@ def extract_changed_lines(patch: str) -> str:
     for line in patch.splitlines():
         if line.startswith(("+++", "---", "@@")):
             continue
-        if line.startswith("+") or line.startswith("-"):
+        if line.startswith("+"):
             lines.append(line)
     return "\n".join(lines)
 
@@ -70,20 +70,23 @@ def main():
         prompt = f"""
 You are a Senior Python/Flask Developer.
 
-Review the following code changes for bugs, security issues, and best practices.
+Review the following code changes.
 
-OUTPUT FORMAT (STRICT):
-1. Show ONLY problematic lines in a GitHub diff-style Markdown code block
-   - Use '-' for original line
-   - Use '+' for suggested fix
-2. Immediately AFTER the code block, write a short review comment in plain text
-   - 1–2 sentences only
-   - Explain WHY the change is needed
-3. Do NOT repeat unchanged lines
-4. Do NOT write long paragraphs or general advice
-5. If there are NO issues, output NOTHING
+STRICT OUTPUT RULES:
+1. Show suggestions in GitHub diff-style Markdown
+2. After the diff block, write the review comment in **BOLD**
+3. Max 1–2 sentences
+4. If there are NO issues, output NOTHING
 
-Code Diffs:
+# Start Example
+
+```diff
+- result = 10 / 0
++ result = 10 / value if value != 0 else None
+**This prevents a ZeroDivisionError and avoids crashing the application.**
+# End Example
+
+CODE CHANGES:
 {diffs}
 """
         payload = {"contents": [{"parts": [{"text": prompt}]}]}
@@ -99,7 +102,7 @@ Code Diffs:
             raise RuntimeError(f"API Error: Model did not return text. Reason: {reason}")
 
         # ========== 5. POST COMMENT IN MARKDOWN DIFF ==========
-        comment_body = f"## 🤖 Gemini 3 AI Review (Code Suggestions)\n\n {review_text}"
+        comment_body = f"## 🤖 AI Review (Code Suggestions)\n\n {review_text}"
         pr.create_issue_comment(comment_body)
 
         print(f"✅ Review posted successfully using {MODEL_NAME}")
