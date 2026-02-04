@@ -18,13 +18,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Install dependencies
-        run: poetry install --no-root
+      - name: Install deps
+        run: pip install requests PyGithub
 
       - name: Run Gemini PR Review
         env:
@@ -32,4 +27,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
-        run: poetry run python scripts/gemini_review.py
+          # AI_REVIEW_SOURCE_DIR: src/
+          # AI_REVIEW_EXTENSIONS: .js,.jsx,.ts,.tsx
+          AI_REVIEW_EXTENSIONS: .py
+        run: python scripts/gemini_review.py

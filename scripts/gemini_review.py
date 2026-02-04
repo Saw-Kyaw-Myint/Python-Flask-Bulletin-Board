@@ -39,6 +39,16 @@ def extract_changed_lines_with_numbers(patch: str) -> List[Dict]:
     return results
 
 
+def is_reviewable(file, source_dir, allowed_extensions):
+    if not file.patch:
+        return False
+
+    if source_dir and not file.filename.startswith(source_dir):
+        return False
+
+    return file.filename.endswith(allowed_extensions)
+
+
 def main():
     try:
         # ========== 1. ENV CONFIG ==========
@@ -46,6 +56,11 @@ def main():
         GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
         PR_NUMBER = os.environ.get("PR_NUMBER")
         REPO = os.environ.get("REPO")
+        AI_REVIEW_SOURCE_DIR = os.environ.get("AI_REVIEW_SOURCE_DIR", "")
+        AI_REVIEW_EXTENSIONS = tuple(
+            ext.strip()
+            for ext in os.environ.get("AI_REVIEW_EXTENSIONS", ".py").split(",")
+        )
 
         if not all([GEMINI_API_KEY, GITHUB_TOKEN, PR_NUMBER, REPO]):
             missing = [
@@ -70,7 +85,7 @@ def main():
         diffs = ""
 
         for file in pr.get_files():
-            if not file.filename.endswith(".py") or not file.patch:
+            if not is_reviewable(file, AI_REVIEW_SOURCE_DIR, AI_REVIEW_EXTENSIONS):
                 continue
 
             changed_lines = extract_changed_lines_with_numbers(file.patch)
@@ -113,37 +128,32 @@ MANDATORY RULES (DO NOT VIOLATE):
 
 OUTPUT FORMAT (STRICT):
 - If multiple files are present, repeat the format below per file
-- File name must be shown as plain text on its own line
+- File name must be shown as <a href="#"><b>filename.py</b></a> text with bold font on its own line
 - Then show ONE diff block
-- Then ONE **BOLD** explanation (1–3 sentences max)
-- Enter 'existing line'  code block and 'suggestion line' code block each file
-- Bold and underline to File Name
-
+- Then ONE **bold** explanation (1–4 sentences max)
+- Horizontal line (---) under explanation
 
 You MUST follow the output format exactly.
 Do NOT add extra text, headings, or explanations outside this structure.
-
 VALID OUTPUT STRUCTURE:
-
-filename.py (Note => Bold and underline to this Line)
+<a href="#"><b><i>filename.py</i></b></a>
 ```diff
 -L23: existing line
-\n
+
 + suggestion line
-Short explanation of the problem and fix. (Note => Bold this Line)
+```
+**Short explanation of the problem and fix.**
+
+---
+
+
 
 DO NOT add anything else.
-
 INVALID OUTPUT EXAMPLES (NEVER DO THESE):
-
 "This is good practice"
-
 "The code looks fine"
-
 Explanations without a diff
-
 Diff blocks containing --- , +++ , @@
-
 Paragraphs or summaries
 
 CODE CHANGES TO REVIEW:
@@ -164,7 +174,7 @@ CODE CHANGES TO REVIEW:
             )
 
         # ========== 5. POST COMMENT IN MARKDOWN DIFF ==========
-        comment_body = f"## 🤖 AI OverAll Changes Review \n\n {review_text}"
+        comment_body = f"## 🤖 AI PR Overall Review \n\n {review_text}"
         pr.create_issue_comment(comment_body)
 
         print(f"..Review posted successfully using {MODEL_NAME}..")
