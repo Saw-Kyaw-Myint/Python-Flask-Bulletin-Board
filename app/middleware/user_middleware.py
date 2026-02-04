@@ -6,6 +6,10 @@ if path not in CONDITIONAL_JWT_ROUTES:
         verify_jwt_in_request()
         return
 
+if path not in CONDITIONAL_JWT_ROUTES:
+        verify_jwt_in_request()
+        return
+
 @jwt_required()
 def user_middleware():
     """
