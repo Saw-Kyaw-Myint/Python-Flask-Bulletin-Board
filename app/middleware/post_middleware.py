@@ -24,6 +24,16 @@ def post_middleware():
     if path not in CONDITIONAL_JWT_ROUTES:
         verify_jwt_in_request()
         return
+    
+
+        # Skip routes that don't need JWT at all
+    if path not in CONDITIONAL_JWT_ROUTES:
+        verify_jwt_in_request()
+        return
+        # Skip routes that don't need JWT at all
+    if path not in CONDITIONAL_JWT_ROUTES:
+        verify_jwt_in_request()
+        return
     # If any filter param is provided, require JWT
     filter_params = ["name", "description", "status", "date"]
     if any(request.args.get(param) is not None for param in filter_params):
